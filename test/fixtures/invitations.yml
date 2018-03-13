@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  recipient_name: MyString
+  recipient_email: MyString
+  token: MyString
+  used: false
+
+two:
+  user: two
+  recipient_name: MyString
+  recipient_email: MyString
+  token: MyString
+  used: false
