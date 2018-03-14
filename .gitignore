@@ -22,3 +22,14 @@
 
 # Ignore encrypted secrets key file.
 config/secrets.yml.key
+
+/coverage
+
+#Local temp files
+/.sass-cache
+*.swp
+*.swn
+*.swm
+*.swo
+*.*~
+*~
