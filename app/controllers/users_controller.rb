@@ -23,5 +23,9 @@ class UsersController < ApiController
     def set_user
       @user = User.find(params[:id])
     end
+
+    def user_params
+      params.require(:user).permit(:first_name, :last_name, :email, :external_id, :iuvare_id, :sponsor_external_id, :placement_external_id, :active, :phone, :password , :password_confirmation)
+    end
   
 end

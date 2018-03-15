@@ -75,7 +75,7 @@ ActiveRecord::Schema.define(version: 20180313230758) do
     t.string "recipient_name"
     t.string "recipient_email"
     t.string "token"
-    t.boolean "used"
+    t.boolean "used", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_invitations_on_user_id"
@@ -95,11 +95,11 @@ ActiveRecord::Schema.define(version: 20180313230758) do
   create_table "users", id: :serial, force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
-    t.integer "external_id"
-    t.integer "sponsor_external_id"
-    t.integer "placement_external_id"
+    t.integer "external_id", null: false
+    t.integer "sponsor_external_id", null: false
+    t.integer "placement_external_id", null: false
     t.string "phone"
-    t.boolean "active"
+    t.boolean "active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "provider", default: "email", null: false

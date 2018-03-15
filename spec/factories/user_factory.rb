@@ -8,6 +8,9 @@ FactoryBot.define do
     password_confirmation '12345678'
     sequence(:phone){ |n| "555555555#{n}" }
     roles {[FactoryBot.create(:role)]}
+    sequence(:external_id){|n| n+1 }
+    sequence(:sponsor_external_id){|n| n}
+    sequence(:placement_external_id){|n| n }
   end
 
 end

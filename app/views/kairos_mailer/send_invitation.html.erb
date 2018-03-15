@@ -1,0 +1,6 @@
+<p>Hola <%= @recipient %>!</p>
+
+<p><%= @sender %> te ha invitado a registrarte en Prana.</p>
+
+<p>Para registrarte, haz click <a href='<%="http://#{Rails.application.secrets.host}/register?token=#{@token}" %>'>aquí</a></p>
+

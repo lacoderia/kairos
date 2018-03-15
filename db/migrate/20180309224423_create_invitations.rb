@@ -5,7 +5,7 @@ class CreateInvitations < ActiveRecord::Migration[5.0]
       t.string :recipient_name
       t.string :recipient_email
       t.string :token
-      t.boolean :used
+      t.boolean :used, default: false
 
       t.timestamps
     end
