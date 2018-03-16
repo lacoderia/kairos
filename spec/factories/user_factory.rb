@@ -11,6 +11,10 @@ FactoryBot.define do
     sequence(:external_id){|n| n+1 }
     sequence(:sponsor_external_id){|n| n}
     sequence(:placement_external_id){|n| n }
+    
+    trait :with_address do
+      addresses {[FactoryBot.create(:address)]}
+    end
   end
 
 end

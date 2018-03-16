@@ -14,7 +14,7 @@ class UsersController < ApiController
       end
       render json: @user
     else
-      render json: ErrorSerializer.serialize(@user.errors)
+      render json: ErrorSerializer.serialize(@user.errors), status: 500
     end
   end
 

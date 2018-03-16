@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180313230758) do
+ActiveRecord::Schema.define(version: 20180315225930) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,23 @@ ActiveRecord::Schema.define(version: 20180313230758) do
     t.bigint "user_id", null: false
     t.index ["role_id", "user_id"], name: "index_roles_users_on_role_id_and_user_id"
     t.index ["user_id", "role_id"], name: "index_roles_users_on_user_id_and_role_id"
+  end
+
+  create_table "shipping_addresses", force: :cascade do |t|
+    t.string "address"
+    t.string "state"
+    t.string "location"
+    t.string "zip"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "shipping_addresses_users", id: false, force: :cascade do |t|
+    t.bigint "shipping_address_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["shipping_address_id", "user_id"], name: "address_id_user_id"
+    t.index ["user_id", "shipping_address_id"], name: "user_id_address_id"
   end
 
   create_table "users", id: :serial, force: :cascade do |t|

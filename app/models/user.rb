@@ -7,6 +7,7 @@ class User < ApplicationRecord
   include DeviseTokenAuth::Concerns::User
 
   has_and_belongs_to_many :roles  
+  has_and_belongs_to_many :shipping_addresses
   has_many :emails
   has_many :invitations
 
