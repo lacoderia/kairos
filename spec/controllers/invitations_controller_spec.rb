@@ -1,11 +1,12 @@
 feature 'InvitationsController' do
   include ActiveJob::TestHelper
 
-  let!(:user){ create(:user) }
+  let!(:user){ create(:user, :confirmed) }
   
     context 'invitation creation' do
 
       it 'should successfully create invitation' do
+
         new_invitation = { recipient_name: "Pedrito Bodoque", recipient_email: "pedrito_bodoque@gmail.com", user_id:user.id}
         
         login_with_service u = { email: user.email, password: '12345678' }

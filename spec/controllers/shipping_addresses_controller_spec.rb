@@ -2,7 +2,7 @@ feature 'ShippingAddressesController' do
 
   context 'shipping address creation' do
 
-    let!(:user){create(:user)}
+    let!(:user){create(:user, :confirmed)}
 
     it 'should successfully create shipping address' do
         

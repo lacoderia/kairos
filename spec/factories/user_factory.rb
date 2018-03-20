@@ -15,6 +15,10 @@ FactoryBot.define do
     trait :with_address do
       addresses {[FactoryBot.create(:address)]}
     end
+
+    trait :confirmed do
+      confirmed_at Time.zone.now
+    end
   end
 
 end

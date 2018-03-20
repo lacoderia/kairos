@@ -41,5 +41,9 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
   
   config.read_encrypted_secrets = true
-  
+
+  config.action_mailer.default_url_options = { :host => Rails.application.secrets.host }
+
+  config.active_job.queue_adapter = :test
+
 end
