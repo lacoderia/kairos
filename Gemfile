@@ -22,6 +22,8 @@ gem 'ransack',    github: 'activerecord-hackery/ransack'
 gem 'formtastic', github: 'justinfrench/formtastic'
 gem 'draper',              '> 3.x'
 
+gem 'loofah', '~> 2.2.1'
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.5'
 # Use postgres as the database for Active Record
