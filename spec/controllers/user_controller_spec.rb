@@ -114,7 +114,9 @@ feature 'UsersController' do
 
       expect(invitation.used).to be false
       
+      devise_mailer_count = Devise.mailer.deliveries.count
       page = register_with_service new_user, invitation.token 
+      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
 
       visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
       logout

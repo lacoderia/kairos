@@ -32,6 +32,8 @@ class User < ApplicationRecord
             false
           else
             invitations.first.update_attribute("used", true)
+            #TODO: Check if needed in production
+            self.send_confirmation_instructions
           end
         else
           self.errors.add(:registration, "Necesitas una invitación válida para poderte registrar. Solicítala a tu upline.")
