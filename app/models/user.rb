@@ -11,6 +11,8 @@ class User < ApplicationRecord
   has_many :emails
   has_many :invitations
 
+  scope :by_external_id, -> (external_id){where(external_id: external_id)}  
+
   def role?(role)
     return !!self.roles.find_by_name(role)
   end

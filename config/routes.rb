@@ -19,7 +19,11 @@ Rails.application.routes.draw do
     get 'session', :to => "sessions#get"
   end 
   
-  resources :users
+  resources :users do
+    collection do
+      get 'by_external_id'
+    end
+  end
   
   root to: "admin/dashboard#index"
 end

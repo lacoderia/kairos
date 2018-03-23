@@ -8,6 +8,7 @@ class Ability
 
     can :create, :registration
     can [:create, :get, :destroy], :session
+    can :by_external_id, User
     #can [:create, :update], :password
 
     if user.instance_of? User

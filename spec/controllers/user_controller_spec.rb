@@ -161,4 +161,29 @@ feature 'UsersController' do
 
   end
 
+  context 'get users by external_id' do
+      let!(:user_01){ create(:user, external_id: "12066412") }
+      let!(:user_02){ create(:user, external_id: "12066413") }
+
+      it 'should get user' do
+        visit("#{by_external_id_users_path}?external_id=12066412")
+        response = JSON.parse(page.body)
+        expect(response['users'].count).to eql 1
+        expect(response['users'][0]['external_id']).to eql user_01.external_id 
+
+        visit("#{by_external_id_users_path}?external_id=12066415")
+        response = JSON.parse(page.body)
+        expect(page.status_code).to be 500
+        expect(response["errors"][0]["title"]).to eql "No se encontró usuario con este ID."
+
+        user_02.external_id = "12066412"
+        user_02.save
+
+        visit("#{by_external_id_users_path}?external_id=12066412")
+        response = JSON.parse(page.body)
+        expect(response['users'].count).to eql 2
+
+      end
+    end
+
 end
