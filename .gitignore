@@ -24,7 +24,6 @@
 config/secrets.yml.key
 
 /coverage
-/coverage/*
 
 #Local temp files
 /.sass-cache
@@ -33,4 +32,3 @@ config/secrets.yml.key
 *.swm
 *.swo
 *.*~
-*~

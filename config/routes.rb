@@ -3,7 +3,11 @@ Rails.application.routes.draw do
   resources :shipping_addresses
   resources :emails
   resources :roles
-  resources :invitations
+  resources :invitations do
+    collection do
+      get 'by_user'
+    end
+  end
   
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self) rescue ActiveAdmin::DatabaseHitDuringLoad

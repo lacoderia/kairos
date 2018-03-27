@@ -13,7 +13,7 @@ FactoryBot.define do
     sequence(:placement_external_id){|n| n }
     
     trait :with_address do
-      addresses {[FactoryBot.create(:address)]}
+      shipping_addresses {[FactoryBot.create(:shipping_address)]}
     end
 
     trait :confirmed do
