@@ -112,9 +112,9 @@ ActiveRecord::Schema.define(version: 20180315225930) do
   create_table "users", id: :serial, force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
-    t.integer "external_id", null: false
-    t.integer "sponsor_external_id", null: false
-    t.integer "placement_external_id", null: false
+    t.bigint "external_id", null: false
+    t.bigint "sponsor_external_id", null: false
+    t.bigint "placement_external_id", null: false
     t.string "phone"
     t.boolean "active", default: true
     t.datetime "created_at", null: false
@@ -142,7 +142,6 @@ ActiveRecord::Schema.define(version: 20180315225930) do
     t.json "tokens"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
-    #fix t.index ["external_id"], name: "index_users_on_external_id", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
