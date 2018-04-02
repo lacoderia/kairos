@@ -101,6 +101,34 @@ feature 'UsersController' do
 
   end
 
+  context 'user registration with no invitation' do
+    
+    let!(:upline){create(:user, :confirmed)}
+
+    it 'should register a new user and set devise token headers' do
+
+      new_user = { email: "new_user@parana.mx", first_name: "New", last_name: "User", password: "newuser", password_confirmation: "newuser", phone: "434343434", external_id: upline.external_id + 1, sponsor_external_id: upline.external_id, placement_external_id: upline.external_id} 
+      
+      access_token_1, uid_1, client_1, expiry_1, token_type_1 = nil
+      devise_mailer_count = Devise.mailer.deliveries.count
+      
+      page = register_with_service new_user 
+
+      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
+
+      visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
+      logout
+      login_with_service user = { email: new_user[:email], password: new_user[:password] }
+      access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
+
+      response = JSON.parse(page.body)
+      expect(access_token_1).not_to be nil
+      expect(response["user"]["email"]).to eql new_user[:email]
+
+    end
+
+  end
+
   context 'user registration through invitation' do
 
     let!(:upline){create(:user, :confirmed)}
@@ -124,7 +152,6 @@ feature 'UsersController' do
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
 
       response = JSON.parse(page.body)
-      access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
       expect(access_token_1).not_to be nil
       expect(response["user"]["email"]).to eql new_user[:email]
       

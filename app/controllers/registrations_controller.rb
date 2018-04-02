@@ -18,6 +18,7 @@ class RegistrationsController < Devise::RegistrationsController
     build_resource(sign_up_params)
     @user = resource
     saved = @user.register(params[:token])
+    
     if saved
       @user.save
       #SendEmailJob.perform_later("welcome", @user, nil)

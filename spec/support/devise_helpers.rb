@@ -8,9 +8,13 @@ module TestingSupport
       return page
     end
 
-    def register_with_service user, token
+    def register_with_service user, token = nil
       with_rack_test_driver do
-        page.driver.post user_registration_path, { user: user, token: token }
+        if token
+          page.driver.post user_registration_path, { user: user, token: token }
+        else
+          page.driver.post user_registration_path, { user: user }
+        end
       end
       return page
     end
