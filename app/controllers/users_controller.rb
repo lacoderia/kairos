@@ -38,7 +38,7 @@ class UsersController < ApiController
     end
 
     def user_params
-      params.require(:user).permit(:first_name, :last_name, :email, :external_id, :iuvare_id, :sponsor_external_id, :placement_external_id, :active, :phone, :password , :password_confirmation)
+      params.require(:user).permit(:first_name, :last_name, :email, :external_id, :iuvare_id, :sponsor_external_id, :placement_external_id, :active, :phone, :password , :password_confirmation, :transaction_number)
     end
   
 end
