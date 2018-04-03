@@ -2,7 +2,7 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :trackable, :validatable, :confirmable
+         :recoverable, :rememberable, :trackable, :validatable#, :confirmable
   
   include DeviseTokenAuth::Concerns::User
 
@@ -36,7 +36,8 @@ class User < ApplicationRecord
             else
               invitations.first.update_attribute("used", true)
               #TODO: Check if needed in production
-              self.send_confirmation_instructions
+              #self.send_confirmation_instructions
+              true
             end
           else
             self.errors.add(:registration, "Necesitas una invitación válida para poderte registrar. Solicítala a tu upline.")
@@ -44,7 +45,8 @@ class User < ApplicationRecord
           end
         end
       else
-        self.send_confirmation_instructions
+        #self.send_confirmation_instructions
+        true
       end
     else
       self.errors.add(:registration, "Ya existe un usuario registrado con ese correo electrónico.")
