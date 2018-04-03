@@ -25,7 +25,7 @@ class RegistrationsController < Devise::RegistrationsController
       #SendEmailJob.perform_later("welcome", @user, nil)
       #new_auth_header = @user.create_new_auth_token
       #response.headers.merge!(new_auth_header)
-      #sign_in @user
+      sign_in @user
       render json: @user
     else
       @user.errors.add(:incorrect_registration, "No se pudo crear el usuario.")
