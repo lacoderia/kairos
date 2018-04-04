@@ -64,7 +64,7 @@ feature 'UsersController' do
       expect(response['errors'][0]["title"]).to eql "doesn't match Password"
 
       #Update email      
-      update_user_request = {user:{email: "new_test@email.com", transaction_number: "123"} }
+      update_user_request = {user:{email: "new_test@email.com", transaction_number: "123", iuvare_id: "456"} }
       with_rack_test_driver do
         page.driver.put "#{users_path}/#{user_01.id}", update_user_request 
       end
@@ -83,6 +83,7 @@ feature 'UsersController' do
       response = JSON.parse(page.body)
       expect(response['user']['email']).to eql "new_test@email.com"
       expect(response['user']['transaction_number']).to eql "123"
+      expect(response['user']['iuvare_id']).to eql "456"
 
       logout
 
