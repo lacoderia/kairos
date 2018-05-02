@@ -8,6 +8,8 @@ class User < ApplicationRecord
 
   has_and_belongs_to_many :roles  
   has_and_belongs_to_many :shipping_addresses
+  has_and_belongs_to_many :orders
+  has_and_belongs_to_many :payments
   has_many :emails
   has_many :invitations
 

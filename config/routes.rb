@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
   
+  resources :orders
+  resources :payments
   resources :shipping_addresses
   resources :emails
   resources :roles
