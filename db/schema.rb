@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180502223020) do
+ActiveRecord::Schema.define(version: 20180508055105) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -68,6 +68,12 @@ ActiveRecord::Schema.define(version: 20180502223020) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_emails_on_user_id"
+  end
+
+  create_table "from_users_payments", id: false, force: :cascade do |t|
+    t.bigint "from_user_id"
+    t.bigint "payment_id"
+    t.index ["from_user_id", "payment_id"], name: "index_from_users_payments_on_from_user_id_and_payment_id"
   end
 
   create_table "invitations", id: :serial, force: :cascade do |t|
@@ -171,8 +177,10 @@ ActiveRecord::Schema.define(version: 20180502223020) do
     t.json "tokens"
     t.string "transaction_number"
     t.string "iuvare_id"
+    t.boolean "quick_start_paid", default: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["external_id"], name: "index_users_on_external_id", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end

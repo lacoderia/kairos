@@ -12,9 +12,10 @@ class User < ApplicationRecord
   has_and_belongs_to_many :payments
   has_many :emails
   has_many :invitations
+  has_and_belongs_to_many :contributed_payments, class_name: 'Payment', join_table: 'from_users_payments', foreign_key: 'from_user_id'
 
   scope :by_external_id, -> (external_id){where(external_id: external_id)}  
-
+  
   def role?(role)
     return !!self.roles.find_by_name(role)
   end
@@ -55,5 +56,64 @@ class User < ApplicationRecord
       false
     end
   end
+  
+  def placement_downlines
+    User.where(placement_external_id: self.external_id)
+  end
+
+  def placement_upline
+    User.find_by_external_id(self.placement_external_id)
+  end
+
+  def self.check_activity_recursive_downline inactive_downline, period
+    
+    downlines = inactive_downline.placement_downlines 
+
+    if downlines.count == 0
+      return nil
+    else
+      inactive_downlines = []
+      downlines.each do |downline|
+        orders_in_period = downline.orders.where("description = ?", period).count
+        if orders_in_period > 0
+          return downline
+        else
+          inactive_downlines << downline
+        end
+      end
+
+      inactive_downlines.each do |inactive_downline|
+        downline = User.check_activity_recursive_downline inactive_downline, period
+        if downline
+          return downline
+        end
+      end
+
+      return nil
+      
+    end
+
+  end
+
+  def self.check_activity_recursive_upline_3_levels upline, active_uplines, period
+
+
+    if active_uplines.count == 3
+      return active_uplines
+    else
+      orders_in_period = upline.orders.where("description = ?", period).count
+
+      if orders_in_period > 0
+        active_uplines << upline
+      end
+        
+      if upline.placement_upline
+        return User.check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period
+      else
+        return active_uplines
+      end
+    end
+
+  end 
   
 end
