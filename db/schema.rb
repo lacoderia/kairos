@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180508055105) do
+ActiveRecord::Schema.define(version: 20180606231059) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -87,11 +87,28 @@ ActiveRecord::Schema.define(version: 20180508055105) do
     t.index ["user_id"], name: "index_invitations_on_user_id"
   end
 
-  create_table "orders", force: :cascade do |t|
+  create_table "items", force: :cascade do |t|
+    t.string "company"
+    t.string "name"
     t.string "description"
-    t.integer "item_id"
+    t.float "price"
+    t.float "commissionable_value"
+    t.integer "volume"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "items_orders", id: false, force: :cascade do |t|
+    t.bigint "item_id", null: false
+    t.bigint "order_id", null: false
+    t.index ["item_id", "order_id"], name: "index_items_orders_on_item_id_and_order_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "order_number"
   end
 
   create_table "orders_users", id: false, force: :cascade do |t|
@@ -178,6 +195,7 @@ ActiveRecord::Schema.define(version: 20180508055105) do
     t.string "transaction_number"
     t.string "iuvare_id"
     t.boolean "quick_start_paid", default: false
+    t.string "phone_alt"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["external_id"], name: "index_users_on_external_id", unique: true

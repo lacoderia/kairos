@@ -20,30 +20,30 @@ CSV.open("payments_prana.csv", "wb") do |csv|
       when 'QUICK_START'
         quick_start += Payment::QUICK_START
         payment.from_users.each do |user|
-          quick_start_ids << user.id 
+          quick_start_ids << user.external_id 
         end
       when 'LEVEL_1'
         level_1 += Payment::LEVEL_1
         payment.from_users.each do |user|
-          level_1_ids << user.id
+          level_1_ids << user.external_id
         end
       when 'LEVEL_2'
         level_2 += Payment::LEVEL_2
         payment.from_users.each do |user|
-          level_2_ids << user.id
+          level_2_ids << user.external_id
         end
       when 'LEVEL_3'
         level_3 += Payment::LEVEL_3
         payment.from_users.each do |user|
-          level_3_ids << user.id
+          level_3_ids << user.external_id
         end
       end
     end
 
     total = level_1 + level_2 + level_3 + quick_start
     total_maximo = total
-    if total >= 11400
-      total_maximo = 11400
+    if (level_1 + level_2 + level_3) >= 11400
+      total_maximo = 11400 + quick_start
     end
         
     quick_start_ids = quick_start_ids*"," 

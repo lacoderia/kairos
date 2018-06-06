@@ -115,5 +115,24 @@ class User < ApplicationRecord
     end
 
   end 
+
+  def self.check_tree_consistency_placement user 
+
+    if user.external_id == 11
+      #Se ha llegado al final del árbol
+      return true
+    else
+      placement_upline = user.placement_upline
+      if placement_upline
+        return User.check_tree_consistency_placement placement_upline
+      else
+        puts "Árbol sin upline para el usuario con ID #{user.external_id}"
+        return false
+      end
+
+    end
+
+
+  end
   
 end
