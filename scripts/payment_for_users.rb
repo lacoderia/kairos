@@ -4,7 +4,9 @@ require_relative "../config/environment"
 
 CSV.open("payments_prana.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ BONO RAPIDO", "IDS BONO RAPIDO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ TOTAL", "$ MAXIMO" ]
-  User.joins(:orders).where("orders.description = ?", "CONSUMO ABRIL 2018").order("external_id desc").each do |user|
+  users = User.joins(:orders).where("orders.created_at between ? AND ?", "2018-05-01", "2018,06-01").order("external_id desc")
+    
+  users.uniq.each do |user|
 
     quick_start = 0
     level_1 = 0

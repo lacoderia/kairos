@@ -65,7 +65,61 @@ class User < ApplicationRecord
     User.find_by_external_id(self.placement_external_id)
   end
 
-  def self.check_activity_recursive_downline inactive_downline, period
+  def sponsor_downlines
+    User.where(sponsor_external_id: self.external_id)
+  end
+
+  def sponsor_upline
+    User.find_by_external_id(self.sponsor_external_id)
+  end
+
+  #TODO: verify registration_paid in PRANA by checking ODERS with item 'INSCRIPCION' and adding a field in users named registration_paid
+  def active_for_period period_start, period_end, verify_min_volume_in_omein = false 
+
+    #Activity in PRANA
+    user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                        "PRANA", period_start, period_end)
+
+    has_product_orders = Order.has_product_orders user_prana_orders
+
+    if not has_product_orders
+      return false
+    end
+
+    if (user_prana_orders.count > 0)
+
+      if verify_min_volume_in_omein
+
+        #Activity in OMEIN
+        user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                            "OMEIN", period_start, period_end) 
+        
+        omein_volume = 0
+        user_omein_orders.each do |omein_order|
+          omein_order.items.each do |item|
+            omein_volume += item.volume
+          end
+        end
+
+        #if self.external_id == 124
+        #  byebug
+        #end
+
+        if omein_volume < Payment::MIN_VOLUME_IN_OMEIN_TO_RECEIVE_QUICK_START
+          return false
+        end
+
+      end
+
+      return true
+
+    else
+      return false      
+    end 
+
+  end
+
+  def self.check_activity_recursive_downline inactive_downline, period_start, period_end
     
     downlines = inactive_downline.placement_downlines 
 
@@ -74,8 +128,10 @@ class User < ApplicationRecord
     else
       inactive_downlines = []
       downlines.each do |downline|
-        orders_in_period = downline.orders.where("description = ?", period).count
-        if orders_in_period > 0
+
+        active_in_period = downline.active_for_period period_start, period_end, false
+
+        if active_in_period
           return downline
         else
           inactive_downlines << downline
@@ -83,7 +139,7 @@ class User < ApplicationRecord
       end
 
       inactive_downlines.each do |inactive_downline|
-        downline = User.check_activity_recursive_downline inactive_downline, period
+        downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end
         if downline
           return downline
         end
@@ -95,20 +151,21 @@ class User < ApplicationRecord
 
   end
 
-  def self.check_activity_recursive_upline_3_levels upline, active_uplines, period
-
+  #TODO: Check upline activity based on Omein's orders
+  def self.check_activity_recursive_upline_3_levels upline, active_uplines, period_start, period_end
 
     if active_uplines.count == 3
       return active_uplines
     else
-      orders_in_period = upline.orders.where("description = ?", period).count
 
-      if orders_in_period > 0
+      active_in_period = upline.active_for_period period_start, period_end, true
+
+      if active_in_period 
         active_uplines << upline
       end
         
       if upline.placement_upline
-        return User.check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period
+        return User.check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period_start, period_end
       else
         return active_uplines
       end
