@@ -7,7 +7,8 @@ class Payment < ApplicationRecord
   PRANA_LEVEL_2 = 600.00
   PRANA_LEVEL_3 = 200.00
   ACTIVE_DOWNLINES_FOR_QUICK_START = 3
-  MIN_VOLUME_IN_OMEIN_TO_RECEIVE_QUICK_START = 200
+  MAX_VOLUME_IN_OMEIN = 200
+  MIN_VOLUME_IN_OMEIN = 100
 
   PAYMENT_TYPES = [
     'PRANA_QUICK_START',
@@ -45,11 +46,7 @@ class Payment < ApplicationRecord
 
     users.each do |user|
 
-      #if user.external_id == 124
-      #  byebug
-      #end
-
-      unless user.active_for_period period_start, period_end, true
+      unless user.prana_active_for_period period_start, period_end, true
         next
       end
 
@@ -77,17 +74,13 @@ class Payment < ApplicationRecord
           end
         end
 
-        #if user.external_id == 124
-        #  byebug
-        #end
-
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
           Payment.prana_add_quick_start user, period_start, period_end, active_downlines
           puts "pago de powerstart activo al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
           quick_start_payments += 1
         else
           inactive_downlines.each do |inactive_downline|
-            downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end
+            downline = User.prana_check_activity_recursive_downline inactive_downline, period_start, period_end
             if downline
               active_downlines << downline
             end
@@ -121,7 +114,7 @@ class Payment < ApplicationRecord
     users.each do |user|
 
       if user.placement_upline
-        active_uplines = User.check_activity_recursive_upline_3_levels user.placement_upline, [], period_start, period_end
+        active_uplines = User.prana_check_activity_recursive_upline_3_levels user.placement_upline, [], period_start, period_end
 
         puts "pagos del usuario #{user.email}"
 
@@ -159,6 +152,24 @@ class Payment < ApplicationRecord
   end
 
   def self.omein_calculate_ranks period_start, period_end
+
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", "OMEIN", period_start, period_end).order("external_id desc").uniq
+
+    puts "#{users.count} usuarios con consumo en el periodo #{period_start} - #{period_end}"
+
+    users.each do |user|
+
+      unless user.omein_active_for_period period_start, period_end, true
+        next
+      end
+
+      downlines = user.placement_downlines 
+
+      if downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
+
+      end
+
+    end
 
   end
 

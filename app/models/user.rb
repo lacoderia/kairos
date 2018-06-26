@@ -73,8 +73,29 @@ class User < ApplicationRecord
     User.find_by_external_id(self.sponsor_external_id)
   end
 
+  def omein_active_for_period period_start, period_end, min_volume = 100
+
+    #Activity in OMEIN
+    user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                        "OMEIN", period_start, period_end)
+
+    omein_volume = 0
+    user_omein_orders.each do |omein_order|
+      omein_order.items.each do |item|
+        omein_volume += item.volume
+      end
+    end
+
+    if omein_volume < min_volume
+      return false
+    else
+      return true
+    end
+    
+  end
+
   #TODO: verify registration_paid in PRANA by checking ODERS with item 'INSCRIPCION' and adding a field in users named registration_paid
-  def active_for_period period_start, period_end, verify_min_volume_in_omein = false 
+  def prana_active_for_period period_start, period_end, verify_min_volume_in_omein = false 
 
     #Activity in PRANA
     user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
@@ -89,29 +110,10 @@ class User < ApplicationRecord
     if (user_prana_orders.count > 0)
 
       if verify_min_volume_in_omein
-
-        #Activity in OMEIN
-        user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                            "OMEIN", period_start, period_end) 
-        
-        omein_volume = 0
-        user_omein_orders.each do |omein_order|
-          omein_order.items.each do |item|
-            omein_volume += item.volume
-          end
-        end
-
-        #if self.external_id == 124
-        #  byebug
-        #end
-
-        if omein_volume < Payment::MIN_VOLUME_IN_OMEIN_TO_RECEIVE_QUICK_START
-          return false
-        end
-
+        return self.omein_active_for_period period_start, period_end, 200
+      else 
+        return true
       end
-
-      return true
 
     else
       return false      
@@ -119,7 +121,7 @@ class User < ApplicationRecord
 
   end
 
-  def self.check_activity_recursive_downline inactive_downline, period_start, period_end
+  def self.prana_check_activity_recursive_downline inactive_downline, period_start, period_end
     
     downlines = inactive_downline.placement_downlines 
 
@@ -129,7 +131,7 @@ class User < ApplicationRecord
       inactive_downlines = []
       downlines.each do |downline|
 
-        active_in_period = downline.active_for_period period_start, period_end, false
+        active_in_period = downline.prana_active_for_period period_start, period_end, false
 
         if active_in_period
           return downline
@@ -139,7 +141,7 @@ class User < ApplicationRecord
       end
 
       inactive_downlines.each do |inactive_downline|
-        downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end
+        downline = User.prana_check_activity_recursive_downline inactive_downline, period_start, period_end
         if downline
           return downline
         end
@@ -152,20 +154,20 @@ class User < ApplicationRecord
   end
 
   #TODO: Check upline activity based on Omein's orders
-  def self.check_activity_recursive_upline_3_levels upline, active_uplines, period_start, period_end
+  def self.prana_check_activity_recursive_upline_3_levels upline, active_uplines, period_start, period_end
 
     if active_uplines.count == 3
       return active_uplines
     else
 
-      active_in_period = upline.active_for_period period_start, period_end, true
+      active_in_period = upline.prana_active_for_period period_start, period_end, true
 
       if active_in_period 
         active_uplines << upline
       end
         
       if upline.placement_upline
-        return User.check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period_start, period_end
+        return User.prana_check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period_start, period_end
       else
         return active_uplines
       end
@@ -183,12 +185,27 @@ class User < ApplicationRecord
       if placement_upline
         return User.check_tree_consistency_placement placement_upline
       else
-        puts "Árbol sin upline para el usuario con ID #{user.external_id}"
+        puts "Árbol sin upline de colocación para el usuario con ID #{user.external_id}"
         return false
       end
-
     end
 
+  end
+
+  def self.check_tree_consistency_sponsor user 
+
+    if user.external_id == 11
+      #Se ha llegado al final del árbol
+      return true
+    else
+      sponsor_upline = user.sponsor_upline
+      if sponsor_upline
+        return User.check_tree_consistency_sponsor sponsor_upline
+      else
+        puts "Árbol sin upline de patrocinio para el usuario con ID #{user.external_id}"
+        return false
+      end
+    end
 
   end
   
