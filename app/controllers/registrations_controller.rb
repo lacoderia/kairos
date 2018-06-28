@@ -22,14 +22,12 @@ class RegistrationsController < Devise::RegistrationsController
       saved = @user.register(params[:token])
     
       if saved
-        @user.save
+        @user.save!
         #SendEmailJob.perform_later("welcome", @user, nil)
         new_auth_header = @user.create_new_auth_token
         response.headers.merge!(new_auth_header)
         sign_in @user
         render json: @user
-      else
-        raise 'No se pudo crear el usuario.'
       end
 
     rescue Exception => e
