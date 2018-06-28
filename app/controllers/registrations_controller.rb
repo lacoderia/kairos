@@ -30,8 +30,8 @@ class RegistrationsController < Devise::RegistrationsController
         render json: @user
       end
 
-    rescue Exception => e
-      @user.errors.add(:incorrect_registration, e.message)
+    rescue Exception
+      @user.errors.add(:incorrect_registration, 'No se pudo crear el usuario. Favor de verificar los datos proporcionados.')
       render json: ErrorSerializer.serialize(@user.errors), status: 500
     end
   end
