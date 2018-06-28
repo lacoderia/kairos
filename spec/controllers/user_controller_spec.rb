@@ -213,12 +213,13 @@ feature 'UsersController' do
         expect(page.status_code).to be 500
         expect(response["errors"][0]["title"]).to eql "No se encontró usuario con este ID."
 
+        # external_id is unique
         user_02.external_id = "12066412"
-        user_02.save
+        expect {user_02.save!}.to raise_error.with_message(/duplicate key value violates unique constraint/)
 
         visit("#{by_external_id_users_path}?external_id=12066412")
         response = JSON.parse(page.body)
-        expect(response['users'].count).to eql 2
+        expect(response['users'].count).to eql 1
 
       end
     end

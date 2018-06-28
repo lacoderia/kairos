@@ -153,8 +153,31 @@ class User < ApplicationRecord
 
   end
 
-  #TODO: Check upline activity based on Omein's orders
-  def self.prana_check_activity_recursive_upline_3_levels upline, active_uplines, period_start, period_end
+  def self.prana_check_activity_recursive_upline_3_levels_no_compression upline, uplines_with_eligibility, period_start, period_end 
+
+
+    if uplines_with_eligibility.count == 3
+      return uplines_with_eligibility
+    else
+
+      eligible_for_payment = upline.prana_active_for_period period_start, period_end, true
+      active_in_prana = upline.prana_active_for_period period_start, period_end, false 
+
+      if active_in_prana
+        uplines_with_eligibility << {upline: upline, eligible: eligible_for_payment}
+      end
+        
+      if upline.placement_upline
+        return User.prana_check_activity_recursive_upline_3_levels_no_compression(upline.placement_upline, uplines_with_eligibility,
+                                                                                  period_start, period_end)
+      else
+        return uplines_with_eligibility
+      end
+    end
+
+  end
+
+  def self.prana_check_activity_recursive_upline_3_levels_compression upline, active_uplines, period_start, period_end
 
     if active_uplines.count == 3
       return active_uplines

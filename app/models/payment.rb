@@ -7,6 +7,7 @@ class Payment < ApplicationRecord
   PRANA_LEVEL_2 = 600.00
   PRANA_LEVEL_3 = 200.00
   ACTIVE_DOWNLINES_FOR_QUICK_START = 3
+  ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE = 3
   MAX_VOLUME_IN_OMEIN = 200
   MIN_VOLUME_IN_OMEIN = 100
 
@@ -114,24 +115,25 @@ class Payment < ApplicationRecord
     users.each do |user|
 
       if user.placement_upline
-        active_uplines = User.prana_check_activity_recursive_upline_3_levels user.placement_upline, [], period_start, period_end
+        uplines = User.prana_check_activity_recursive_upline_3_levels_no_compression(user.placement_upline, [],
+                                                                                            period_start, period_end)
 
         puts "pagos del usuario #{user.email}"
 
-        if active_uplines[0]
-          Payment.add_payment active_uplines[0], period_start, period_end, [user], "PRANA", 1
+        if uplines[0] and uplines[0][:eligible]
+          Payment.add_payment uplines[0][:upline], period_start, period_end, [user], "PRANA", 1
           level_1_payments += 1
-          puts "pago de nivel 1 al usuario #{active_uplines[0].email} en el periodo #{period_start} - #{period_end}"
+          puts "pago de nivel 1 al usuario #{uplines[0][:upline].email} en el periodo #{period_start} - #{period_end}"
         end
-        if active_uplines[1]
-          Payment.add_payment active_uplines[1], period_start, period_end, [user], "PRANA", 2
+        if uplines[1] and uplines[1][:eligible]
+          Payment.add_payment uplines[1][:upline], period_start, period_end, [user], "PRANA", 2
           level_2_payments += 1 
-          puts "pago de nivel 2 al usuario #{active_uplines[1].email} en el periodo #{period_start} - #{period_end}"
+          puts "pago de nivel 2 al usuario #{uplines[1][:upline].email} en el periodo #{period_start} - #{period_end}"
         end
-        if active_uplines[2]
-          Payment.add_payment active_uplines[2], period_start, period_end, [user], "PRANA", 3
+        if uplines[2] and uplines[2][:eligible]
+          Payment.add_payment uplines[2][:upline], period_start, period_end, [user], "PRANA", 3
           level_3_payments += 1 
-          puts "pago de nivel 3 al usuario #{active_uplines[2].email} en el periodo #{period_start} - #{period_end}"
+          puts "pago de nivel 3 al usuario #{uplines[2][:upline].email} en el periodo #{period_start} - #{period_end}"
         end
       
       end
@@ -159,13 +161,13 @@ class Payment < ApplicationRecord
 
     users.each do |user|
 
-      unless user.omein_active_for_period period_start, period_end, true
+      unless user.omein_active_for_period period_start, period_end 
         next
       end
 
-      downlines = user.placement_downlines 
+      placement_downlines = user.placement_downlines 
 
-      if downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
+      if placement_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
 
       end
 
@@ -174,6 +176,29 @@ class Payment < ApplicationRecord
   end
 
   def self.omein_calculate_royalties period_start, period_end
+
+  end
+  
+  def omein_check_active_cycle period_start, period_end, active_placement_downlines, active_sponsor_downlines
+      
+    placement_downlines = user.placement_downlines 
+    sponsor_downlines = user.sponsor_downlines 
+
+    if placement_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
+
+      placement_downlines.each do |pd|
+
+        if pd.omein_active_for_period period_start, period_end
+          active_placement_downlines << pd          
+        else
+          
+        end
+
+      end
+
+    else
+      return false
+    end
 
   end
   

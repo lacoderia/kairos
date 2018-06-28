@@ -15,19 +15,25 @@ class RegistrationsController < Devise::RegistrationsController
       sign_out current_user
     end
 
-    build_resource(sign_up_params)
-    @user = resource
-    saved = @user.register(params[:token])
+    begin
+
+      build_resource(sign_up_params)
+      @user = resource
+      saved = @user.register(params[:token])
     
-    if saved
-      @user.save
-      #SendEmailJob.perform_later("welcome", @user, nil)
-      new_auth_header = @user.create_new_auth_token
-      response.headers.merge!(new_auth_header)
-      sign_in @user
-      render json: @user
-    else
-      @user.errors.add(:incorrect_registration, "No se pudo crear el usuario.")
+      if saved
+        @user.save
+        #SendEmailJob.perform_later("welcome", @user, nil)
+        new_auth_header = @user.create_new_auth_token
+        response.headers.merge!(new_auth_header)
+        sign_in @user
+        render json: @user
+      else
+        raise 'No se pudo crear el usuario.'
+      end
+
+    rescue Exception => e
+      @user.errors.add(:incorrect_registration, e.message)
       render json: ErrorSerializer.serialize(@user.errors), status: 500
     end
   end
