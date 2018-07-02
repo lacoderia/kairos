@@ -28,6 +28,8 @@ class RegistrationsController < Devise::RegistrationsController
         response.headers.merge!(new_auth_header)
         sign_in @user
         render json: @user
+      else
+        render json: ErrorSerializer.serialize(@user.errors), status: 500
       end
 
     rescue Exception
