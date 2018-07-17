@@ -7,6 +7,7 @@ class Ability
     cannot :manage, :all
 
     can :create, :registration
+    can [:create, :update], :password
     can [:create, :get, :destroy], :session
     can :by_external_id, User
     #can [:create, :update], :password
