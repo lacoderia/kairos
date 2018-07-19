@@ -1,0 +1,10 @@
+<p>¡Bienvenido <%= @resource.first_name %>!</p>
+
+<p>Hemos recibido tu información de registro.</p>
+
+<p>Entra a la siguiente liga para confirmar que este email está asociado a tu cuenta: <%= link_to 'Confirmar mi cuenta', confirmation_url(@resource, confirmation_token: @token, redirect_url: root_url) %>
+
+
+</p>
+
+<p>Si tienes alguna duda escríbenos a <a href="mailto:info@prana.mx">info@prana.mx</a></p>

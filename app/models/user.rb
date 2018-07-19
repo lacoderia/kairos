@@ -2,7 +2,7 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :trackable, :validatable#, :confirmable
+         :recoverable, :rememberable, :trackable, :validatable, :confirmable
   
   include DeviseTokenAuth::Concerns::User
 
@@ -39,7 +39,7 @@ class User < ApplicationRecord
             else
               invitations.first.update_attribute("used", true)
               #TODO: Check if needed in production
-              #self.send_confirmation_instructions
+              self.send_confirmation_instructions
               true
             end
           else

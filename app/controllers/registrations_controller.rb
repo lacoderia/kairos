@@ -26,7 +26,12 @@ class RegistrationsController < Devise::RegistrationsController
         #SendEmailJob.perform_later("welcome", @user, nil)
         new_auth_header = @user.create_new_auth_token
         response.headers.merge!(new_auth_header)
-        sign_in @user
+          
+        # Remove without :confirmable
+        if @user.confirmed?
+          sign_in @user
+        end
+        
         render json: @user
       else
         render json: ErrorSerializer.serialize(@user.errors), status: 500
