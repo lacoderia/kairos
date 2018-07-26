@@ -31,6 +31,18 @@ class UsersController < ApiController
     end
   end
 
+  # GET /users/confirm?confirmation_token=[token]
+  def confirm
+    @user = User.confirm_by_token(params[:confirmation_token])
+    if @user
+      render json: @user
+    else
+      @user = User.new
+      @user.errors.add(:error_confirming_token, "Hubo un error confirmando el correo.")
+      render json: ErrorSerializer.serialize(@user.errors), status: 500
+    end
+  end
+
   private
 
     def set_user

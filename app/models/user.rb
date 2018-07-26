@@ -20,6 +20,15 @@ class User < ApplicationRecord
     return !!self.roles.find_by_name(role)
   end
 
+  def self.confirm_by_token confirmation_token
+    user = User.find_by_confirmation_token(confirmation_token)
+    if user
+      user.confirmed_at = Time.zone.now
+      user.save!
+    end
+    return user
+  end
+
   def register token = nil
     user = User.find_by_email(self.email)
     unless user
