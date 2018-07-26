@@ -2,7 +2,7 @@ class UsersController < ApiController
   include ErrorSerializer
   
   load_and_authorize_resource
-  before_action :authenticate_user!, except: [:by_external_id]
+  before_action :authenticate_user!, except: [:by_external_id, :confirm]
   before_action :set_user, only: [:update]  
 
   # PATCH/PUT /users/1
