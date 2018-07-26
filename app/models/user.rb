@@ -48,7 +48,7 @@ class User < ApplicationRecord
           end
         end
       else
-        #self.send_confirmation_instructions
+        self.send_confirmation_instructions
         true
       end
     else
