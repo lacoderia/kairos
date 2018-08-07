@@ -82,18 +82,9 @@ class User < ApplicationRecord
     User.find_by_external_id(self.sponsor_external_id)
   end
 
-  def omein_active_for_period period_start, period_end, min_volume = 100
+  def omein_active_for_period period_start, period_end, min_volume = Payment::MIN_VOLUME_IN_OMEIN
 
-    #Activity in OMEIN
-    user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                        "OMEIN", period_start, period_end)
-
-    omein_volume = 0
-    user_omein_orders.each do |omein_order|
-      omein_order.items.each do |item|
-        omein_volume += item.volume
-      end
-    end
+    omein_volume = self.get_personal_volume period_start, period_end, Payment::COMPANY_OMEIN 
 
     if omein_volume < min_volume
       return false
@@ -108,7 +99,7 @@ class User < ApplicationRecord
 
     #Activity in PRANA
     user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                        "PRANA", period_start, period_end)
+                                                        Payment::COMPANY_PRANA, period_start, period_end)
 
     has_product_orders = Order.has_product_orders user_prana_orders
 
@@ -119,7 +110,7 @@ class User < ApplicationRecord
     if (user_prana_orders.count > 0)
 
       if verify_min_volume_in_omein
-        return self.omein_active_for_period period_start, period_end, 200
+        return self.omein_active_for_period period_start, period_end, Payment::MAX_VOLUME_IN_OMEIN
       else 
         return true
       end
@@ -130,9 +121,50 @@ class User < ApplicationRecord
 
   end
 
-  def self.prana_check_activity_recursive_downline inactive_downline, period_start, period_end
-    
-    downlines = inactive_downline.placement_downlines 
+  def get_personal_volume period_start, period_end, company = Payment::COMPANY_OMEIN
+
+    #Volume in OMEIN
+    user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                        company, period_start, period_end)
+
+    omein_volume = 0
+    user_omein_orders.each do |omein_order|
+      omein_order.items.each do |item|
+        omein_volume += item.volume
+      end
+    end
+
+    return omein_volume
+
+  end
+
+  def get_group_volume period_start, period_end, company = Payment::COMPANY_OMEIN
+
+    downlines = self.placement_downlines
+
+    if downlines.count == 0
+      
+      return self.get_personal_volume period_start, period_end, company 
+
+    else
+
+      omein_volume = 0
+
+      downlines.each do |downline|
+        omein_volume += downline.get_group_volume period_start, period_end, company = Payment::COMPANY_OMEIN 
+      end
+
+      omein_volume += self.get_personal_volume period_start, period_end, company
+      
+      return omein_volume
+
+    end
+
+  end
+
+  def self.check_activity_recursive_downline inactive_downline, period_start, period_end, company
+
+    downlines = inactive_downline.placement_downlines
 
     if downlines.count == 0
       return nil
@@ -140,7 +172,11 @@ class User < ApplicationRecord
       inactive_downlines = []
       downlines.each do |downline|
 
-        active_in_period = downline.prana_active_for_period period_start, period_end, false
+        if company == Payment::COMPANY_OMEIN
+          active_in_period = downline.omein_active_for_period period_start, period_end 
+        else
+          active_in_period = downline.prana_active_for_period period_start, period_end 
+        end
 
         if active_in_period
           return downline
@@ -150,7 +186,9 @@ class User < ApplicationRecord
       end
 
       inactive_downlines.each do |inactive_downline|
-        downline = User.prana_check_activity_recursive_downline inactive_downline, period_start, period_end
+        
+        downline = User.prana_check_activity_recursive_downline inactive_downline, period_start, period_end, company
+
         if downline
           return downline
         end
