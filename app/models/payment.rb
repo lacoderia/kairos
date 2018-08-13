@@ -161,7 +161,7 @@ class Payment < ApplicationRecord
 
     puts "#{users.count} usuarios con consumo de Omein en el periodo #{period_start} - #{period_end}"
 
-    users_with_active_cycle = []
+    users_with_active_cycle_and_vg = []
 
     users.each do |user|
 
@@ -189,7 +189,7 @@ class Payment < ApplicationRecord
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
           # Active Cycle eligible 
-          users_with_active_cycle << user
+          users_with_active_cycle_and_vg << {user: user, vg: user.get_group_volume(period_start, period_end) }
         else
           inactive_downlines.each do |inactive_downline|
             downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, COMPANY_OMEIN
@@ -199,7 +199,7 @@ class Payment < ApplicationRecord
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
               # Active Cycle eligible
-              users_with_active_cycle << user
+              users_with_active_cycle_and_vg << {user: user, vg: (user.get_group_volume period_start, period_end) }
               break          
             end
             
@@ -208,24 +208,152 @@ class Payment < ApplicationRecord
       end
     end
 
-    return users_with_active_cycle
+    return users_with_active_cycle_and_vg
     
   end
 
   def self.omein_calculate_ranks period_start, period_end
 
-    users_with_active_cycle = Payment.omein_get_active_cycles period_start, period_end
+    users_with_active_cycle_and_vg = Payment.omein_get_active_cycles period_start, period_end
+    oneks_with_vg = []
+    oneks = []
 
-    users_with_active_cycle.each do |user|
+    users_with_active_cycle_and_vg.each do |user_with_vg|
+
+      if user_with_vg[:vg] > 1000
+        oneks_with_vg << user_with_vg
+        oneks << user_with_vg[:user]
+      end
+      
+    end
+
+    #we subtract the calculated 1ks and above ranks
+    users_with_active_cycle_and_vg -= oneks_with_vg
+
+    threeks_with_vg = []
+    threeks = []
+
+    oneks_with_vg.each do |onek_with_vg|
+
+      if onek_with_vg[:vg] > 3000
+
+        result_tree = onek_with_vg[:user].search_qualified_downlines (oneks - [onek_with_vg[:user]]), {}, nil
+
+        #two 1ks in different legs to qualify 3k
+        eligible_1ks = 0
+        result_tree.each_with_index {|users_with_vg, index|
+          if users_with_vg.count > 0
+            eligible_1ks += 1
+            next
+          end
+        }
         
-      group_volume = user.get_group_volume period_start, period_end
+        if eligible_1ks >= 2
+          threeks_with_vg << onek_with_vg
+          threeks << onek_with_vg[:user]
+        end
 
-      if group_volume 
+      end
+
+    end
+    
+    #we subtract the calculated 3ks and above ranks
+    oneks_with_vg -= threeks_with_vg
+
+    sevenks_with_vg = []
+
+    threeks_with_vg.each do |threek_with_vg|
+
+      if threek_with_vg[:vg] > 7000
+
+        result_tree = threek_with_vg[:user].search_qualified_downlines (threeks - [threek_with_vg[:user]]), {}, nil
+
+        #two 3ks in different legs to qualify 7k
+        eligible_3ks = 0
+        result_tree.each_with_index {|users_with_vg, index|
+          if users_with_vg.count > 0
+            eligible_3ks += 1
+            next
+          end
+        }
+        
+        if eligible_3ks >= 2
+          sevenks_with_vg << threek_with_vg
+        end
 
       end
 
     end
 
+    #we subtract the calculated 7ks and above ranks
+    threeks_with_vg -= sevenks_with_vg
+
+    tenks_with_vg = []
+
+    sevenks_with_vg.each do |sevenk_with_vg|
+
+      if sevenk_with_vg[:vg] > 10000
+
+        #we use the threeks as the original set
+        result_tree = sevenk_with_vg[:user].search_qualified_downlines (threeks - [sevenk_with_vg[:user]]), {}, nil
+
+        #three 3ks, max 2 in a single group
+        eligible_3ks = 0
+
+        result_tree.each_with_index {|users_with_vg, index|
+          if users_with_vg.count >= 2
+            eligible_3ks += 2
+          else
+            eligible_3ks += users_with_vg.count
+          end
+          next
+        }
+        
+        if eligible_3ks >= 3
+          tenks_with_vg << sevenk_with_vg
+        end
+
+      end
+
+    end
+    
+    #we subtract the calculated 10ks and above ranks
+    sevenks_with_vg -= tenks_with_vg
+
+    twentyks_with_vg = []
+
+    tenks_with_vg.each do |tenk_with_vg|
+
+      if tenk_with_vg[:vg] > 20000
+
+        #we use the threeks as the original set
+        result_tree = tenk_with_vg[:user].search_qualified_downlines (threeks - [tenk_with_vg[:user]]), {}, nil
+
+        #five 3ks, max 3 in a single group
+        eligible_3ks = 0
+
+        result_tree.each_with_index {|users_with_vg, index|
+          if users_with_vg.count >= 3
+            eligible_3ks += 3
+          else
+            eligible_3ks += users_with_vg.count
+          end
+          next
+        }
+        
+        if eligible_3ks >= 5
+          twentyks_with_vg << tenk_with_vg
+        end
+
+      end
+
+    end
+    
+    #we subtract the calculated 20ks and above ranks
+    tenks_with_vg -= twentyks_with_vg
+
+    #todo: return the resultsets
+    byebug
   end
 
   def self.omein_calculate_royalties period_start, period_end

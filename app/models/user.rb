@@ -162,6 +162,36 @@ class User < ApplicationRecord
 
   end
 
+  def search_qualified_downlines qualified_users, root_tree, leg_position = nil
+
+    downlines = self.placement_downlines
+
+    if downlines.count == 0
+      return root_tree
+    else
+      downlines.each_with_index {|user, index|
+
+        if leg_position
+          index = leg_position
+        else
+          root_tree[index] = []
+        end
+
+        is_qualified_downline = qualified_users.include? user
+
+        if is_qualified_downline
+          root_tree[index] << user
+        end
+
+        root_tree = user.search_qualified_downlines (qualified_users - [user]), root_tree, index
+
+      }
+    end
+
+    return root_tree
+
+  end
+
   def self.check_activity_recursive_downline inactive_downline, period_start, period_end, company
 
     downlines = inactive_downline.placement_downlines
@@ -187,7 +217,7 @@ class User < ApplicationRecord
 
       inactive_downlines.each do |inactive_downline|
         
-        downline = User.prana_check_activity_recursive_downline inactive_downline, period_start, period_end, company
+        downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, company
 
         if downline
           return downline
