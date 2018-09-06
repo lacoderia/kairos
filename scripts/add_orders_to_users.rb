@@ -4,7 +4,7 @@ require_relative "../config/environment"
 
 puts "REGISTRANDO COMPRAS OMEIN"
 compras_omein = 0
-CSV.foreach(File.path("scripts/omein_compras_junio_2018.csv"), { :col_sep => ',' }) do |col|
+CSV.foreach(File.path("scripts/omein_compras_julio_2018_2.csv"), { :col_sep => ',' }) do |col|
 
   #["ID", "Nombre", "Orden", "Fecha", "Puntos" ]
   external_id = col[0]
@@ -35,7 +35,7 @@ puts "COMPRAS OMEIN REGISTRADAS #{compras_omein}"
 
 puts "REGISTRANDO COMPRAS PRANA"
 compras_prana = 0
-CSV.foreach(File.path("scripts/prana_compras_junio_2018.csv"), { :col_sep => ',' }) do |col|
+CSV.foreach(File.path("scripts/prana_compras_julio_2018_2.csv"), { :col_sep => ',' }) do |col|
 
   #["Fecha", "ID", "Nombre", "Producto" ]
   created_at = (col[0].to_datetime.end_of_day).in_time_zone("Mexico City").beginning_of_day

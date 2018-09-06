@@ -2,21 +2,21 @@
 require_relative "../config/environment"
 
 not_found = 0
-periodo = "CONSUMO JULIO 2018"
+periodo = "CONSUMO ABRIL 2018"
 users_found = []
 users_not_found = []
 
 #ID OMEIN,NOMBRES,APELLIDOS,ID PATROCINIO,ID COLOCACION,CONSUMO,ID IUVARE,EMAIL
 #ID, OMEIN ID, NOMBRE, FECHA DE INSCRIPCION, CORREO, CELULAR, TELEFONO, ESTATUS, COMPRA PRANA ABRIL, COMPRA PRANA MAYO, ID PATROCINADOR, NOMBRE, ESTATUS, ID COLOCADOR, NOMBRE, ESTATUS, BONO, FECHA BONO, UNILEVEL MENSUAL ABRIL, FECHA
-CSV.foreach(File.path("scripts/socios_nuevos_julio_2018_3.csv"), { :col_sep => ',' }) do |col|
+CSV.foreach(File.path("scripts/entregable_junio_2018/nuevos_usuarios_junio_2018.csv"), { :col_sep => ',' }) do |col|
   omein_id = col[0].to_i
-  sponsor_omein_id = col[7].to_i
+  sponsor_omein_id = col[8].to_i
   placement_omein_id = col[9].to_i
 #  iuvare_id = col[6].to_s
-  email = col[3]
-  phone = col[5]
-  phone_alt = col[4]
-  created_at = (col[2].to_datetime.end_of_day).in_time_zone("Mexico City").beginning_of_day
+  email = col[7]
+  phone = col[6]
+  phone_alt = col[5]
+  created_at = (col[4].to_datetime.end_of_day).in_time_zone("Mexico City").beginning_of_day
 #  consumo = col[5]
   user = User.find_by_email(email)
   if user
@@ -50,7 +50,7 @@ CSV.foreach(File.path("scripts/socios_nuevos_julio_2018_3.csv"), { :col_sep => '
     #end
 
     if user.first_name == nil
-      names_array = col[1].split(" ")
+      names_array = col[2].split(" ")
       case names_array.count
       when 1
         user.first_name = names_array[0]
@@ -79,32 +79,9 @@ CSV.foreach(File.path("scripts/socios_nuevos_julio_2018_3.csv"), { :col_sep => '
     not_found += 1
     puts "Usuario con ID OMEIN #{omein_id} e email #{email} no encontrado"
     users_not_found << email
-    first_name = ""
-    last_name = ""
+    User.create!(external_id: omein_id, sponsor_external_id: sponsor_omein_id, placement_external_id: placement_omein_id, email: email,
+                phone: phone, phone_alt: phone_alt, created_at: created_at, password: email, password_confirmation: email)
 
-    names_array = col[1].split(" ")
-    case names_array.count
-    when 1
-      first_name = names_array[0]
-    when 2
-      first_name = names_array[0]
-      last_name = names_array[1]
-    when 3
-      first_name = names_array[0]
-      last_name = names_array[1] + " " + names_array[2]
-    when 4
-      first_name = names_array[0] + " " + names_array[1] 
-      last_name = names_array[2] + " " + names_array[3]
-    when 5
-      first_name = names_array[0] + " " + names_array[1] + " " + names_array[2]
-      last_name = names_array[3] + " " + names_array[4]
-    when 6
-      first_name = names_array[0] + " " + names_array[1] + " " + names_array[2] + " " + names_array[3] 
-      last_name = names_array[4] + " " + names_array[5]
-    end
-
-
-    User.create!(first_name: first_name, last_name: last_name, external_id: omein_id, sponsor_external_id: sponsor_omein_id, placement_external_id: placement_omein_id, email: email, phone: phone, phone_alt: phone_alt, created_at: created_at, password: email, password_confirmation: email)
   end
 end
 

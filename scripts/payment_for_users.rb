@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 require_relative "../config/environment"
 
-PERIOD_START = "2018-06-01"
-PERIOD_END = "2018-07-01"
+PERIOD_START = "2018-07-01"
+PERIOD_END = "2018-08-01"
 
-CSV.open("payments_prana_junio.csv", "wb") do |csv|
+CSV.open("payments_prana_julio.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ BONO RAPIDO", "IDS BONO RAPIDO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ TOTAL", "$ MAXIMO" ]
   users = User.joins(:orders).where("orders.created_at between ? AND ?", PERIOD_START, PERIOD_END).order("external_id desc")
     
@@ -22,22 +22,22 @@ CSV.open("payments_prana_junio.csv", "wb") do |csv|
     user.payments.where("term_paid = ?", "#{PERIOD_START} - #{PERIOD_END}").each do |payment|
       case payment.payment_type
       when 'PRANA_QUICK_START'
-        quick_start += Payment::PRANA_QUICK_START
+        quick_start += PranaCompPlan::QUICK_START
         payment.from_users.each do |user|
           quick_start_ids << user.external_id 
         end
       when 'PRANA_LEVEL_1'
-        level_1 += Payment::PRANA_LEVEL_1
+        level_1 += PranaCompPlan::LEVEL_1
         payment.from_users.each do |user|
           level_1_ids << user.external_id
         end
       when 'PRANA_LEVEL_2'
-        level_2 += Payment::PRANA_LEVEL_2
+        level_2 += PranaCompPlan::LEVEL_2
         payment.from_users.each do |user|
           level_2_ids << user.external_id
         end
       when 'PRANA_LEVEL_3'
-        level_3 += Payment::PRANA_LEVEL_3
+        level_3 += PranaCompPlan::LEVEL_3
         payment.from_users.each do |user|
           level_3_ids << user.external_id
         end

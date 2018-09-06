@@ -110,15 +110,15 @@ feature 'UsersController' do
       new_user = { email: "new_user@parana.mx", first_name: "New", last_name: "User", password: "newuser", password_confirmation: "newuser", phone: "434343434", external_id: upline.external_id + 1, sponsor_external_id: upline.external_id, placement_external_id: upline.external_id} 
       
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = nil
-#      devise_mailer_count = Devise.mailer.deliveries.count
+      devise_mailer_count = Devise.mailer.deliveries.count
       
       page = register_with_service new_user 
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
 
-#      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
+      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
       expect(access_token_1).not_to be nil
 
-#      visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
+      visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
       
       logout
 
@@ -147,14 +147,14 @@ feature 'UsersController' do
 
       expect(invitation.used).to be false
       
-#      devise_mailer_count = Devise.mailer.deliveries.count
+      devise_mailer_count = Devise.mailer.deliveries.count
       page = register_with_service new_user, invitation.token 
       
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
       expect(access_token_1).not_to be nil
-#      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
+      expect(Devise.mailer.deliveries.count).to eql (devise_mailer_count + 1)
 
-#      visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
+      visit "#{user_confirmation_path}?config=default&confirmation_token=#{User.last.confirmation_token}&redirect_url="
       logout
       
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = nil

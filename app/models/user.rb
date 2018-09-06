@@ -82,9 +82,9 @@ class User < ApplicationRecord
     User.find_by_external_id(self.sponsor_external_id)
   end
 
-  def omein_active_for_period period_start, period_end, min_volume = Payment::MIN_VOLUME_IN_OMEIN
+  def omein_active_for_period period_start, period_end, min_volume = OmeinCompPlan::MIN_VOLUME
 
-    omein_volume = self.get_personal_volume period_start, period_end, Payment::COMPANY_OMEIN 
+    omein_volume = self.omein_get_personal_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN 
 
     if omein_volume < min_volume
       return false
@@ -99,7 +99,7 @@ class User < ApplicationRecord
 
     #Activity in PRANA
     user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                        Payment::COMPANY_PRANA, period_start, period_end)
+                                                        PranaCompPlan::COMPANY_PRANA, period_start, period_end)
 
     has_product_orders = Order.has_product_orders user_prana_orders
 
@@ -110,7 +110,7 @@ class User < ApplicationRecord
     if (user_prana_orders.count > 0)
 
       if verify_min_volume_in_omein
-        return self.omein_active_for_period period_start, period_end, Payment::MAX_VOLUME_IN_OMEIN
+        return self.omein_active_for_period period_start, period_end, OmeinCompPlan::MAX_VOLUME
       else 
         return true
       end
@@ -121,7 +121,7 @@ class User < ApplicationRecord
 
   end
 
-  def get_personal_volume period_start, period_end, company = Payment::COMPANY_OMEIN
+  def omein_get_personal_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     #Volume in OMEIN
     user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
@@ -138,24 +138,28 @@ class User < ApplicationRecord
 
   end
 
-  def get_group_volume period_start, period_end, company = Payment::COMPANY_OMEIN
+  def omein_get_group_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     downlines = self.placement_downlines
 
     if downlines.count == 0
       
-      return self.get_personal_volume period_start, period_end, company 
+      omein_volume = self.omein_get_personal_volume period_start, period_end, company 
+      puts "Usuario #{self.external_id} con #{omein_volume} VP" if omein_volume > 0
+      return omein_volume
 
     else
 
       omein_volume = 0
 
       downlines.each do |downline|
-        omein_volume += downline.get_group_volume period_start, period_end, company = Payment::COMPANY_OMEIN 
+        omein_volume += downline.omein_get_group_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
       end
 
-      omein_volume += self.get_personal_volume period_start, period_end, company
+      personal_omein_volume = self.omein_get_personal_volume period_start, period_end, company 
+      omein_volume += personal_omein_volume
       
+      puts "Usuario #{self.external_id} con #{personal_omein_volume} VP" if personal_omein_volume > 0 
       return omein_volume
 
     end
@@ -202,7 +206,7 @@ class User < ApplicationRecord
       inactive_downlines = []
       downlines.each do |downline|
 
-        if company == Payment::COMPANY_OMEIN
+        if company == OmeinCompPlan::COMPANY_OMEIN
           active_in_period = downline.omein_active_for_period period_start, period_end 
         else
           active_in_period = downline.prana_active_for_period period_start, period_end 
