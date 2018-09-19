@@ -82,4 +82,38 @@ feature 'ShippingAddressesController' do
 
   end
 
+  context 'get all shipping addresses for user' do
+    
+    let!(:user_01){create(:user, :confirmed, :with_address)}
+    let!(:user_02){create(:user, :confirmed, :with_address)}
+    let!(:shipping_address){create(:shipping_address, users: [user_02])}
+
+    it 'should get shipping addresses for logged in users' do
+      
+      login_with_service u = { email: user_01.email, password: '12345678' }
+      access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
+      set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
+
+      visit get_all_for_user_shipping_addresses_path      
+      response = JSON.parse(page.body)
+      expect(response["shipping_addresses"].count).to eql 1 
+
+      logout
+
+      login_with_service u = { email: user_02.email, password: '12345678' }
+      access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
+      set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
+
+      visit get_all_for_user_shipping_addresses_path      
+      response = JSON.parse(page.body)
+      expect(response["shipping_addresses"].count).to eql 2
+      
+      logout
+
+      expect {page.driver.get get_all_for_user_shipping_addresses_path}.to raise_error.with_message('You are not authorized to access this page.')
+
+    end
+
+  end
+
 end

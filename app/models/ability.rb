@@ -16,14 +16,14 @@ class Ability
 
       can :manage, User, id: user.id
       can :manage, Invitation, user_id: user.id
-      can :manage, ShippingAddress, ShippingAddress.joins(:users).where("shipping_addresses_users.user_id = ?", user.id) do |shipping_address|
+      can [:create, :update], ShippingAddress, user.shipping_addresses do |shipping_address|
         if shipping_address.id
           shipping_address.users.first.id == user.id
         else
           true
         end
       end
-      
+      can [:get_all_for_user], ShippingAddress, users: [user]   
     end
 
   end

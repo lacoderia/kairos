@@ -3,7 +3,6 @@ Rails.application.routes.draw do
   resources :items
   resources :orders
   resources :payments
-  resources :shipping_addresses
   resources :emails
   resources :roles
   resources :invitations do
@@ -30,6 +29,12 @@ Rails.application.routes.draw do
   resources :users do
     collection do
       get 'by_external_id'
+    end
+  end
+  
+  resources :shipping_addresses do
+    collection do
+      get 'get_all_for_user'
     end
   end
   

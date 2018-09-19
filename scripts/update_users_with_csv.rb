@@ -2,13 +2,10 @@
 require_relative "../config/environment"
 
 not_found = 0
-periodo = "CONSUMO JULIO 2018"
 users_found = []
 users_not_found = []
 
-#ID OMEIN,NOMBRES,APELLIDOS,ID PATROCINIO,ID COLOCACION,CONSUMO,ID IUVARE,EMAIL
-#ID, OMEIN ID, NOMBRE, FECHA DE INSCRIPCION, CORREO, CELULAR, TELEFONO, ESTATUS, COMPRA PRANA ABRIL, COMPRA PRANA MAYO, ID PATROCINADOR, NOMBRE, ESTATUS, ID COLOCADOR, NOMBRE, ESTATUS, BONO, FECHA BONO, UNILEVEL MENSUAL ABRIL, FECHA
-CSV.foreach(File.path("scripts/socios_nuevos_julio_2018_3.csv"), { :col_sep => ',' }) do |col|
+CSV.foreach(File.path("scripts/socios_nuevos_agosto_2018.csv"), { :col_sep => ',' }) do |col|
   omein_id = col[0].to_i
   sponsor_omein_id = col[7].to_i
   placement_omein_id = col[9].to_i
@@ -42,12 +39,6 @@ CSV.foreach(File.path("scripts/socios_nuevos_julio_2018_3.csv"), { :col_sep => '
     #  user.iuvare_id = iuvare_id
     #  puts "Actualizando usuario #{user.email} de IUVARE ID #{user.iuvare_id} a IUVARE ID #{iuvare_id}"
     #end 
-  
-    #if consumo
-    #  order = Order.create!(description: periodo) 
-    #  user.orders << order
-    #  puts "Agregando consumo a usuario #{user.email}"
-    #end
 
     if user.first_name == nil
       names_array = col[1].split(" ")

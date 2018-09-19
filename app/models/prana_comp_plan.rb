@@ -77,7 +77,7 @@ class PranaCompPlan
 
     users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", COMPANY_PRANA, period_start, period_end).order("external_id desc").uniq
 
-    puts "#{users.count} usuarios con consumo en el periodo #{period_start} - #{period_end}"
+    puts "#{users.count} usuarios con consumo de #{COMPANY_PRANA} en el periodo #{period_start} - #{period_end}"
 
     level_1_payments = 0
     level_2_payments = 0

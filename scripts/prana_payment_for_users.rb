@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 require_relative "../config/environment"
 
-PERIOD_START = "2018-07-01"
-PERIOD_END = "2018-08-01"
+PERIOD_START = "2018-08-01"
+PERIOD_END = "2018-09-01"
 
-CSV.open("payments_prana_julio.csv", "wb") do |csv|
+CSV.open("payments_prana_agosto.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ BONO RAPIDO", "IDS BONO RAPIDO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ TOTAL", "$ MAXIMO" ]
   users = User.joins(:orders).where("orders.created_at between ? AND ?", PERIOD_START, PERIOD_END).order("external_id desc")
     

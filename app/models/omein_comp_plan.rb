@@ -16,6 +16,29 @@ class OmeinCompPlan
   
   POWER_START_25 = 0.25
   POWER_START_15 = 0.15
+
+  LEVEL_1 = 0.02
+  LEVEL_2 = 0.04
+  LEVEL_3 = 0.06
+  LEVEL_4 = 0.08
+  LEVEL_5 = 0.04
+  LEVEL_6 = 0.04
+  LEVEL_7 = 0.04
+  LEVEL_8 = 0.04
+  LEVEL_9 = 0.06
+
+  COMISSIONABLE_VALUE = 1107.00
+
+  LEVELS_PER_RANK = {
+    ac_with_vg: [0, 1, 2],
+    oneks_with_vg: [0, 1, 2, 3],
+    threeks_with_vg: [0, 1, 2, 3],
+    sevenks_with_vg: [0, 1, 2, 3, 4],
+    tenks_with_vg: [0, 1, 2, 3, 4],
+    twentyks_with_vg: [0, 1, 2, 3, 4, 5, 6],
+    thirtyks_with_vg: [0, 1, 2, 3, 4, 5, 6, 7],
+    fiftyks_with_vg: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+  }
   
   def self.calculate_active_cycles period_start, period_end
 
@@ -49,7 +72,8 @@ class OmeinCompPlan
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
           # Active Cycle eligible 
-          users_with_active_cycle_and_vg << {user: user, vg: user.omein_get_group_volume(period_start, period_end) }
+          users_with_active_cycle_and_vg << {user: user, vp: user.omein_get_personal_volume(period_start, period_end),
+                                             vg: user.omein_get_group_volume(period_start, period_end) }
         else
           inactive_downlines.each do |inactive_downline|
             downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, COMPANY_OMEIN
@@ -59,7 +83,8 @@ class OmeinCompPlan
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
               # Active Cycle eligible
-              users_with_active_cycle_and_vg << {user: user, vg: (user.omein_get_group_volume period_start, period_end) }
+              users_with_active_cycle_and_vg << {user: user, vp: user.omein_get_personal_volume(period_start, period_end),
+                                                 vg: (user.omein_get_group_volume period_start, period_end) }
               break          
             end
             
@@ -160,7 +185,8 @@ class OmeinCompPlan
 
     sevenks_with_vg.each do |sevenk_with_vg|
 
-      if sevenk_with_vg[:vg] >= TENK_VOLUME
+      #we check that they have max volume to qualify 10k and above ranks
+      if sevenk_with_vg[:vg] >= TENK_VOLUME and sevenk_with_vg[:vp] >= MAX_VOLUME
 
         #we use the threeks as the original set
         result_tree = sevenk_with_vg[:user].search_qualified_downlines (threeks - [sevenk_with_vg[:user]]), {}, nil
@@ -352,7 +378,121 @@ class OmeinCompPlan
 
   end
 
+  def self.check_user_in_qualificated_ranks upline, qualified_ranks, qualified_uplines_count
+
+    #search upline in qualified ranks
+
+    rank = nil
+    qualified_ranks.each do |key, users_with_vg|
+
+      break if rank
+
+      users_with_vg.each do |user_with_vg|
+        
+        if user_with_vg[:user] == upline
+          rank = key
+          break
+        end
+
+      end
+
+    end
+
+    if rank
+      return LEVELS_PER_RANK[rank].include? qualified_uplines_count
+    else
+      return false
+    end
+
+  end
+
   def self.calculate_royalties period_start, period_end
+
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
+
+    puts "#{users.count} usuarios con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
+
+    level_1_payments = 0
+    level_2_payments = 0
+    level_3_payments = 0
+    level_4_payments = 0
+    level_5_payments = 0
+    level_6_payments = 0
+    level_7_payments = 0
+    level_8_payments = 0
+    level_9_payments = 0
+
+    qualified_ranks = OmeinCompPlan.calculate_ranks period_start, period_end
+
+    users.each do |user|
+
+      if user.placement_upline
+
+        comissionable_volume = user.omein_get_comissionable_volume period_start, period_end
+        uplines = User.omein_check_activity_recursive_upline_9_levels_compression(user.placement_upline, [], qualified_ranks,
+                                                                                            period_start, period_end)
+
+        puts "pagos del usuario #{user.email}"
+
+        if uplines[0]
+          Payment.add_payment uplines[0], period_start, period_end, [user], COMPANY_OMEIN, 1, comissionable_volume
+          level_1_payments += 1
+          puts "pago de nivel 1 al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[1]
+          Payment.add_payment uplines[1], period_start, period_end, [user], COMPANY_OMEIN, 2, comissionable_volume
+          level_2_payments += 1
+          puts "pago de nivel 2 al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[2] 
+          Payment.add_payment uplines[2], period_start, period_end, [user], COMPANY_OMEIN, 3, comissionable_volume
+          level_3_payments += 1
+          puts "pago de nivel 3 al usuario #{uplines[2].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[3]
+          Payment.add_payment uplines[3], period_start, period_end, [user], COMPANY_OMEIN, 4, comissionable_volume
+          level_4_payments += 1
+          puts "pago de nivel 4 al usuario #{uplines[3].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[4]
+          Payment.add_payment uplines[4], period_start, period_end, [user], COMPANY_OMEIN, 5, comissionable_volume
+          level_5_payments += 1
+          puts "pago de nivel 5 al usuario #{uplines[4].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[5]
+          Payment.add_payment uplines[5], period_start, period_end, [user], COMPANY_OMEIN, 6, comissionable_volume
+          level_6_payments += 1
+          puts "pago de nivel 6 al usuario #{uplines[5].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[6]
+          Payment.add_payment uplines[6], period_start, period_end, [user], COMPANY_OMEIN, 7, comissionable_volume
+          level_7_payments += 1
+          puts "pago de nivel 7 al usuario #{uplines[6].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[7]
+          Payment.add_payment uplines[7], period_start, period_end, [user], COMPANY_OMEIN, 8, comissionable_volume
+          level_8_payments += 1
+          puts "pago de nivel 8 al usuario #{uplines[7].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[8]
+          Payment.add_payment uplines[8], period_start, period_end, [user], COMPANY_OMEIN, 9, comissionable_volume
+          level_9_payments += 1
+          puts "pago de nivel 9 al usuario #{uplines[8].email} en el periodo #{period_start} - #{period_end}"
+        end
+              
+      end
+
+    end
+    
+    puts "#{level_1_payments} pagos de nivel 1 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_2_payments} pagos de nivel 2 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_3_payments} pagos de nivel 3 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_4_payments} pagos de nivel 4 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_5_payments} pagos de nivel 5 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_6_payments} pagos de nivel 6 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_7_payments} pagos de nivel 7 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_8_payments} pagos de nivel 8 en el periodo #{period_start} - #{period_end}"
+    puts "#{level_9_payments} pagos de nivel 9 en el periodo #{period_start} - #{period_end}"
 
   end
 

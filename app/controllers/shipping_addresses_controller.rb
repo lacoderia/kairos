@@ -27,6 +27,20 @@ class ShippingAddressesController < ApiController
     end
   end
 
+  # GET /shipping_addresses/get_all_for_user
+  def get_all_for_user
+
+    begin
+      @shipping_addresses = current_user.shipping_addresses
+      render json: @shipping_addresses
+    rescue Exception => e
+      @shipping_address = ShippingAddress.new
+      @shipping_address.errors.add(:error_getting_shipping_addresses, "Error obteniendo direcciones para el usuario")
+      render json: ErrorSerializer.serialize(@shipping_address.errors), status: 500
+    end
+
+  end
+
   private
 
     def set_shipping_address

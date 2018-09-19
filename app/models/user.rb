@@ -138,6 +138,46 @@ class User < ApplicationRecord
 
   end
 
+  def omein_get_comissionable_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
+
+    return self.omein_get_personal_volume period_start, period_end
+
+    #check if it is the first order from the user
+    #if self.created_at < period_start
+      #previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start)
+      #if previous_omein_orders.count > 0
+    #  return self.omein_get_personal_volume period_start, period_end
+    #else
+
+    #  current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+    #                                                   company, period_start, period_end)
+ 
+    #  if current_omein_orders.count > 1
+
+    #    comissionable_volume = 0
+    #    first_order = true
+        
+    #    current_omein_orders.order(created_at: :asc).each do |omein_order|
+
+    #      if first_order 
+    #        first_order = false
+    #        next
+    #      end
+          
+    #      omein_order.items.each do |item|
+    #        comissionable_volume += item.volume
+    #      end
+    #    end
+
+    #    return comissionable_volume
+
+     # else
+     #   return 0
+     # end
+    #end
+
+  end
+
   def omein_get_group_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     downlines = self.placement_downlines
@@ -237,7 +277,7 @@ class User < ApplicationRecord
   def self.prana_check_activity_recursive_upline_3_levels_no_compression upline, uplines_with_eligibility, period_start, period_end 
 
 
-    if uplines_with_eligibility.count == 3
+    if upline == nil or uplines_with_eligibility.count == 3
       return uplines_with_eligibility
     else
 
@@ -258,22 +298,24 @@ class User < ApplicationRecord
 
   end
 
-  def self.prana_check_activity_recursive_upline_3_levels_compression upline, active_uplines, period_start, period_end
+  def self.omein_check_activity_recursive_upline_9_levels_compression upline, qualified_uplines, qualified_ranks, period_start, period_end
 
-    if active_uplines.count == 3
-      return active_uplines
+    if upline == nil or qualified_uplines.count == 9
+      return qualified_uplines
     else
 
-      active_in_period = upline.prana_active_for_period period_start, period_end, true
+      #search upline in eligible levels
+      qualified_for_period = OmeinCompPlan.check_user_in_qualificated_ranks upline, qualified_ranks, qualified_uplines.count
 
-      if active_in_period 
-        active_uplines << upline
+      if qualified_for_period 
+        qualified_uplines << upline
       end
         
       if upline.placement_upline
-        return User.prana_check_activity_recursive_upline_3_levels upline.placement_upline, active_uplines, period_start, period_end
+        return User.omein_check_activity_recursive_upline_9_levels_compression(upline.placement_upline, qualified_uplines, qualified_ranks, 
+          period_start, period_end)
       else
-        return active_uplines
+        return qualified_uplines
       end
     end
 

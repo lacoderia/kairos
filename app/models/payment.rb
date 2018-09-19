@@ -45,7 +45,7 @@ class Payment < ApplicationRecord
     
   end
 
-  def self.add_payment user, period_start, period_end, from_users, company, level
+  def self.add_payment user, period_start, period_end, from_users, company, level, volume = 0
 
     payment_type = "#{company}_LEVEL_#{level}"
 
@@ -53,10 +53,17 @@ class Payment < ApplicationRecord
     if company == PranaCompPlan::COMPANY_PRANA
       payment_amount = eval("PranaCompPlan::LEVEL_#{level}")
     elsif company == OmeinCompPlan::COMPANY_OMEIN
-      payment_amount = eval("OmeinCompPlan::LEVEL_#{level}")
+
+      units_ordered = volume/100
+      total_comissionable_value = units_ordered*OmeinCompPlan::COMISSIONABLE_VALUE
+      payment_amount = eval("OmeinCompPlan::LEVEL_#{level}")*total_comissionable_value
     end
 
-    user.payments << Payment.create!(payment_type: payment_type, amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    #if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: payment_type, amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    #else
+    #  return
+    #end
   end
   
 end
