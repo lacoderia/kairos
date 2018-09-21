@@ -119,6 +119,7 @@ feature 'ShippingAddressesController' do
   context 'destroy shipping addresses for user' do
 
     let!(:user_01){create(:user, :confirmed, :with_address)}
+    let!(:user_02){create(:user, :confirmed, :with_address)}
 
     it 'should destroy shipping address for logged in user' do
       
@@ -134,6 +135,8 @@ feature 'ShippingAddressesController' do
 
       expect(page.status_code).to be 200
       expect(user_01.shipping_addresses.count).to eql 0
+      
+      expect {page.driver.delete  "#{shipping_addresses_path}/#{user_02.shipping_addresses.first.id}"}.to raise_error.with_message('You are not authorized to access this page.')
       
     end
 
