@@ -23,7 +23,7 @@ class Ability
           true
         end
       end
-      can [:get_all_for_user], ShippingAddress, users: [user]   
+      can [:get_all_for_user, :destroy], ShippingAddress, users: [user]   
     end
 
   end
