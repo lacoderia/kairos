@@ -3,6 +3,7 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable, :confirmable
+
   
   include DeviseTokenAuth::Concerns::User
 
@@ -14,7 +15,10 @@ class User < ApplicationRecord
   has_many :invitations
   has_and_belongs_to_many :contributed_payments, class_name: 'Payment', join_table: 'from_users_payments', foreign_key: 'from_user_id'
 
+  accepts_nested_attributes_for :shipping_addresses, allow_destroy: true  
+  
   scope :by_external_id, -> (external_id){where(external_id: external_id)}  
+  scope :with_max_id, -> {order(external_id: :desc).limit(1).first}
   
   def role?(role)
     return !!self.roles.find_by_name(role)
