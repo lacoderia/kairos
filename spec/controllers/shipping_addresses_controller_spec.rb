@@ -6,7 +6,7 @@ feature 'ShippingAddressesController' do
 
     it 'should successfully create shipping address' do
         
-      new_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX"}
+      new_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX", city: "CDMX"}
 
       expect(user.shipping_addresses.count).to eql 0
         
@@ -23,7 +23,7 @@ feature 'ShippingAddressesController' do
       expect(response["shipping_address"]["address"]).to eql new_address[:address]
       expect(user.shipping_addresses.count).to eql 1
 
-      new_address_02 = { address: "nueva rosalina 55", zip: "03389", country: "Mexico", state: "CDMX", location: "MX"}
+      new_address_02 = { address: "nueva rosalina 55", zip: "03389", country: "Mexico", state: "CDMX", location: "MX", city: "CDMX"}
 
       with_rack_test_driver do
         page.driver.post shipping_addresses_path, { shipping_address: new_address_02}
@@ -38,7 +38,7 @@ feature 'ShippingAddressesController' do
 
     it 'should not create shipping addresses without a logged in user' do
 
-      new_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX"}
+      new_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX", city: "CDMX"}
       
       expect(user.shipping_addresses.count).to eql 0
       
@@ -64,7 +64,7 @@ feature 'ShippingAddressesController' do
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
       set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
 
-      updated_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX"}
+      updated_address = { address: "nueva rosalina 45", zip: "03388", country: "Mexico", state: "CDMX", location: "MX", city: "CDMX"}
       with_rack_test_driver do
         page.driver.put "#{shipping_addresses_path}/#{user_01.shipping_addresses.first.id}", {shipping_address: updated_address}
       end

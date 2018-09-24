@@ -6,6 +6,7 @@ FactoryBot.define do
     location "TL"
     zip "03344"
     country "Test Country"
+    city "Test City"
   end
   
 end
