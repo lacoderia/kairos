@@ -11,6 +11,53 @@ ActiveAdmin.register User, as: "Distribuidores" do
   filter :sponsor_external_id, label: "ID Patrocinio"  
   filter :placement_external_id, label: "ID Colocación"  
 
+  controller do
+
+    def create
+      
+      sponsor = User.find_by_external_id(params[:user][:sponsor_external_id])
+      placement = User.find_by_external_id(params[:user][:placement_external_id])
+
+      if sponsor and placement
+        super
+      else
+        @user = User.new(permitted_params[:user])
+        @user.errors.add(:incorrect_uplines, "No se encontró upline con ese ID depatrocinio o colocación.")
+        flash[:error] = 'No se encontró upline con ese ID de patrocinio o colocación.'
+        redirect_to new_admin_distribuidore_path
+      end
+    end
+
+    def update
+      if not current_admin_user.role? :niumedia
+        if params[:instructor][:admin_user_attributes][:password].blank?
+          params[:instructor][:admin_user_attributes].delete("password")
+          params[:instructor][:admin_user_attributes].delete("password_confirmation")
+        end
+      end
+      super
+    end
+
+    def update 
+      
+      sponsor = User.find_by_external_id(params[:user][:sponsor_external_id])
+      placement = User.find_by_external_id(params[:user][:placement_external_id])
+
+      if sponsor and placement
+        if params[:user][:password].blank?
+          params[:user].delete("password")
+        end
+        super
+      else
+        @user = User.new(permitted_params[:user])
+        @user.errors.add(:incorrect_uplines, "No se encontró upline con ese ID depatrocinio o colocación.")
+        flash[:error] = 'No se encontró upline con ese ID de patrocinio o colocación.'
+        redirect_to edit_admin_distribuidore_path
+      end
+    end
+
+  end
+
   config.sort_order = 'created_at_desc'
 
   index title: "Distribuidores" do
@@ -45,7 +92,6 @@ ActiveAdmin.register User, as: "Distribuidores" do
       f.input :phone, label: "Teléfono"
       f.input :phone_alt, label: "Celular"
       f.input :password, label: "Password"
-#      f.input :password_confirmation, label: "Confirma Password"
       f.inputs "Direcciones" do
           f.has_many :shipping_addresses, allow_destroy: true, new_record: true do |a|
             a.input :address, label: "Dirección"
