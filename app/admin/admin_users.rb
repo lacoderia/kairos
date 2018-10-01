@@ -1,6 +1,6 @@
 ActiveAdmin.register User, as: "Distribuidores" do
 
-  actions :all
+  actions :all, :except => [:show]
 
   permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, shipping_addresses_attributes: [:address, :city, :state, :country, :zip]
   
@@ -8,6 +8,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
   filter :last_name, as: :string, label: "Apellido"
   filter :email, as: :string
   filter :external_id, label: "ID Omein"
+  filter :created_at, label: "Creación"
   filter :sponsor_external_id, label: "ID Patrocinio"  
   filter :placement_external_id, label: "ID Colocación"  
 
@@ -68,8 +69,9 @@ ActiveAdmin.register User, as: "Distribuidores" do
     column "Creación", :created_at     
     column "ID Patrocinio", :sponsor_external_id
     column "ID Colocacion", :placement_external_id
-    column "Teléfono", :phone
-    column "Celular", :phone_alt
+    column "" do |user|
+      link_to "Order", "#{new_admin_ordene_path}?user_id=#{user.id}"
+    end
     
     actions defaults: true
   end

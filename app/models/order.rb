@@ -1,6 +1,9 @@
 class Order < ApplicationRecord
   has_and_belongs_to_many :users
   has_and_belongs_to_many :items
+  
+  accepts_nested_attributes_for :users
+  accepts_nested_attributes_for :items
 
   def self.has_product_orders user_prana_orders
 
