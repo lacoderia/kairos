@@ -10,11 +10,11 @@ class Ability
     can [:create, :update], :password
     can [:create, :get, :destroy], :session
     can [:by_external_id, :confirm], User
-    #can [:create, :update], :password
 
     if user.instance_of? User
 
       can :manage, User, id: user.id
+      can :manage, Summary
       can :manage, Invitation, user_id: user.id
       can [:create, :update, :destroy], ShippingAddress, user.shipping_addresses do |shipping_address|
         if shipping_address.id

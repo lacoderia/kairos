@@ -17,7 +17,7 @@ class ConfirmationsController < Devise::ConfirmationsController
       end
     rescue Exception => e 
       @user = User.new
-      @user.errors.add(:confirmation-error, "Hubo un error enviando la confirmación al correo electrónico.")
+      @user.errors.add(:confirmation_error, "Hubo un error enviando la confirmación al correo electrónico.")
       render json: ErrorSerializer.serialize(@user.errors), status: 500
     end
 

@@ -1,5 +1,4 @@
 class RegistrationsController < Devise::RegistrationsController
-  include ErrorSerializer
 
   authorize_resource :class => false
 

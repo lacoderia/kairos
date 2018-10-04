@@ -1,5 +1,4 @@
 class PasswordsController < Devise::PasswordsController
-  include ErrorSerializer
 
   authorize_resource :class => false
   

@@ -1,4 +1,4 @@
-class NboxMailer < ActionMailer::Base
+class KairosMailer < ActionMailer::Base
   default from: "\"Prana\" <contacto@prana.mx>", reply_to: "Prana <contacto@prana.mx>" 
 
   def send_invitation user, invitation

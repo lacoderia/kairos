@@ -1,6 +1,5 @@
 class SessionsController < Devise::SessionsController
   include DeviseTokenAuth::Concerns::SetUserByToken
-  include ErrorSerializer
 
   authorize_resource :class => false
 

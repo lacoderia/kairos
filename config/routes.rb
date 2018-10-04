@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   resources :users do
     collection do
       get 'by_external_id'
+      get 'summary'
     end
   end
   

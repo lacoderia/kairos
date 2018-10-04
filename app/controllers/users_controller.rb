@@ -1,9 +1,8 @@
 class UsersController < ApiController
-  include ErrorSerializer
   
   load_and_authorize_resource
   before_action :authenticate_user!, except: [:by_external_id, :confirm]
-  before_action :set_user, only: [:update]  
+  before_action :set_user, only: [:update]
 
   # PATCH/PUT /users/1
   # PATCH/PUT /users/1.json
@@ -41,6 +40,19 @@ class UsersController < ApiController
       @user.errors.add(:error_confirming_token, "Hubo un error confirmando el correo.")
       render json: ErrorSerializer.serialize(@user.errors), status: 500
     end
+  end
+
+  # GET /users/summary
+  def summary
+    begin
+      summary = Summary.get_for_user current_user    
+      render json: summary
+    rescue Exception => e
+      summary = Summary.new
+      summary.errors.add(:error_getting_summary, "Existió un error obteniendo el resumen.")
+      render json: ErrorSerializer.serialize(summary.errors), status: 500
+    end
+
   end
 
   private
