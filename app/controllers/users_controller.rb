@@ -45,7 +45,7 @@ class UsersController < ApiController
   # GET /users/summary
   def summary
     begin
-      summary = Summary.get_for_user current_user    
+      summary = Summary.current_by_user current_user    
       render json: summary
     rescue Exception => e
       summary = Summary.new

@@ -39,6 +39,8 @@ class OmeinCompPlan
     thirtyks_with_vg: [0, 1, 2, 3, 4, 5, 6, 7],
     fiftyks_with_vg: [0, 1, 2, 3, 4, 5, 6, 7, 8]
   }
+
+  RANKS = ["Empresario", "1K", "3K", "7K", "10K", "20K", "30K", "50K", "100K", "200K", "500K"]
   
   def self.calculate_active_cycles period_start, period_end
 

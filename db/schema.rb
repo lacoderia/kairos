@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180924193539) do
+ActiveRecord::Schema.define(version: 20181004232355) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -162,6 +162,22 @@ ActiveRecord::Schema.define(version: 20180924193539) do
     t.index ["user_id", "shipping_address_id"], name: "user_id_address_id"
   end
 
+  create_table "summaries", force: :cascade do |t|
+    t.bigint "user_id"
+    t.datetime "period_start"
+    t.datetime "period_end"
+    t.integer "current_omein_vg"
+    t.integer "current_omein_vp"
+    t.integer "current_prana_vg"
+    t.integer "current_prana_vp"
+    t.integer "previous_omein_vg"
+    t.integer "previous_omein_vp"
+    t.integer "previous_prana_vg"
+    t.integer "previous_prana_vp"
+    t.string "previous_rank"
+    t.index ["user_id"], name: "index_summaries_on_user_id"
+  end
+
   create_table "users", id: :serial, force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
@@ -197,6 +213,7 @@ ActiveRecord::Schema.define(version: 20180924193539) do
     t.string "iuvare_id"
     t.boolean "quick_start_paid", default: false
     t.string "phone_alt"
+    t.string "max_rank", default: "Empresario"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["external_id"], name: "index_users_on_external_id", unique: true
@@ -206,4 +223,5 @@ ActiveRecord::Schema.define(version: 20180924193539) do
 
   add_foreign_key "emails", "users"
   add_foreign_key "invitations", "users"
+  add_foreign_key "summaries", "users"
 end
