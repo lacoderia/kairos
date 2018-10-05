@@ -87,7 +87,7 @@ class User < ApplicationRecord
 
   def omein_active_for_period period_start, period_end, min_volume = OmeinCompPlan::MIN_VOLUME
 
-    omein_volume = self.omein_get_personal_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN 
+    omein_volume = self.omein_get_personal_volume period_start, period_end 
 
     if omein_volume < min_volume
       return false
@@ -124,89 +124,120 @@ class User < ApplicationRecord
 
   end
 
-  def omein_get_personal_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
-
-    #Volume in OMEIN
-    user_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+  def get_personal_volume period_start, period_end, company
+    user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
                                                         company, period_start, period_end)
 
-    omein_volume = 0
-    user_omein_orders.each do |omein_order|
-      omein_order.items.each do |item|
-        omein_volume += item.volume
+    volume = 0
+    user_orders.each do |order|
+      order.items.each do |item|
+        volume += item.volume
       end
     end
 
-    return omein_volume
+    return volume
+  end
 
+  def omein_get_personal_volume period_start, period_end
+
+    get_personal_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN
+    
+  end
+
+  def prana_get_personal_volume period_start, period_end
+    
+    get_personal_volume period_start, period_end, PranaCompPlan::COMPANY_PRANA 
+    
   end
 
   def omein_get_comissionable_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
-    return self.omein_get_personal_volume period_start, period_end
+    #return self.omein_get_personal_volume period_start, period_end
 
     #check if it is the first order from the user
-    #if self.created_at < period_start
+    if self.created_at < period_start
+      
       #previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start)
+
+      #has previous orders registered
       #if previous_omein_orders.count > 0
-    #  return self.omein_get_personal_volume period_start, period_end
-    #else
+      #  return self.omein_get_personal_volume period_start, period_end
+      #doesn't have previous orderes registered, but it will be count 100% as VG for now
+      #else
+      #  return self.omein_get_personal_volume period_start, period_end
+      #end
+      
+      return self.omein_get_personal_volume period_start, period_end
+      
+    else
 
-    #  current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-    #                                                   company, period_start, period_end)
+      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                       company, period_start, period_end)
  
-    #  if current_omein_orders.count > 1
+      if current_omein_orders.count > 1
 
-    #    comissionable_volume = 0
-    #    first_order = true
+        comissionable_volume = 0
+        first_order = true
         
-    #    current_omein_orders.order(created_at: :asc).each do |omein_order|
+        current_omein_orders.order(created_at: :asc).each do |omein_order|
 
-    #      if first_order 
-    #        first_order = false
-    #        next
-    #      end
+          if first_order 
+            first_order = false
+            next
+          end
           
-    #      omein_order.items.each do |item|
-    #        comissionable_volume += item.volume
-    #      end
-    #    end
+          omein_order.items.each do |item|
+            comissionable_volume += item.volume
+          end
+        end
 
-    #    return comissionable_volume
+        return comissionable_volume
 
-     # else
-     #   return 0
-     # end
-    #end
+      else
+        return 0
+      end
+    end
 
   end
 
-  def omein_get_group_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
+  def get_group_volume period_start, period_end, company
 
     downlines = self.placement_downlines
 
     if downlines.count == 0
       
-      omein_volume = self.omein_get_personal_volume period_start, period_end, company 
-      puts "Usuario #{self.external_id} con #{omein_volume} VP" if omein_volume > 0
-      return omein_volume
+      volume = self.get_personal_volume period_start, period_end, company 
+      puts "Usuario #{self.external_id} con #{volume} VP" if volume > 0
+      return volume
 
     else
 
-      omein_volume = 0
+      volume = 0
 
       downlines.each do |downline|
-        omein_volume += downline.omein_get_group_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
+        volume += downline.get_group_volume period_start, period_end, company
       end
 
-      personal_omein_volume = self.omein_get_personal_volume period_start, period_end, company 
-      omein_volume += personal_omein_volume
+      personal_volume = get_personal_volume period_start, period_end, company 
+      volume += personal_volume
       
-      puts "Usuario #{self.external_id} con #{personal_omein_volume} VP" if personal_omein_volume > 0 
-      return omein_volume
+      puts "Usuario #{self.external_id} con #{personal_volume} VP" if personal_volume > 0 
+      return volume
 
     end
 
+  end
+
+  def omein_get_group_volume period_start, period_end
+    
+    get_group_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN
+    
+  end
+
+  def prana_get_group_volume period_start, period_end
+    
+    get_group_volume period_start, period_end, PranaCompPlan::COMPANY_PRANA
+    
   end
 
   def search_qualified_downlines qualified_users, root_tree, leg_position = nil
@@ -275,7 +306,7 @@ class User < ApplicationRecord
       
     end
 
-  end
+  end 
 
   def self.prana_check_activity_recursive_upline_3_levels_no_compression upline, uplines_with_eligibility, period_start, period_end 
 

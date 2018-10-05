@@ -6,15 +6,11 @@ FactoryBot.define do
     
     period_start Time.zone.now.beginning_of_month
     period_end Time.zone.now.beginning_of_month + 1.month
-    current_omein_vg 800
-    current_omein_vp 100
-    current_prana_vg 800
-    current_prana_vp 100
-    previous_omein_vg 1000
-    previous_omein_vp 100
-    previous_prana_vg 1100
-    previous_prana_vp 100
-    previous_rank "1K"
+    omein_vg 800
+    omein_vp 100
+    prana_vg 800
+    prana_vp 100
+    rank "1K"
     association :user, factory: :user
 
   end

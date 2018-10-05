@@ -166,15 +166,12 @@ ActiveRecord::Schema.define(version: 20181004232355) do
     t.bigint "user_id"
     t.datetime "period_start"
     t.datetime "period_end"
-    t.integer "current_omein_vg"
-    t.integer "current_omein_vp"
-    t.integer "current_prana_vg"
-    t.integer "current_prana_vp"
-    t.integer "previous_omein_vg"
-    t.integer "previous_omein_vp"
-    t.integer "previous_prana_vg"
-    t.integer "previous_prana_vp"
-    t.string "previous_rank"
+    t.integer "omein_vg", default: 0
+    t.integer "omein_vp", default: 0
+    t.integer "prana_vg", default: 0
+    t.integer "prana_vp", default: 0
+    t.string "rank", default: "Empresario"
+    t.index ["user_id", "period_start", "period_end"], name: "index_summaries_on_user_id_and_period_start_and_period_end", unique: true
     t.index ["user_id"], name: "index_summaries_on_user_id"
   end
 

@@ -59,11 +59,11 @@ class Payment < ApplicationRecord
       payment_amount = eval("OmeinCompPlan::LEVEL_#{level}")*total_comissionable_value
     end
 
-    #if payment_amount > 0 
+    if payment_amount > 0 
       user.payments << Payment.create!(payment_type: payment_type, amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-    #else
-    #  return
-    #end
+    else
+      return
+    end
   end
   
 end

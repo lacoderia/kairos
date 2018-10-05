@@ -4,15 +4,13 @@ class CreateSummaries < ActiveRecord::Migration[5.1]
       t.references :user, foreign_key: true
       t.datetime :period_start
       t.datetime :period_end
-      t.integer :current_omein_vg
-      t.integer :current_omein_vp
-      t.integer :current_prana_vg
-      t.integer :current_prana_vp
-      t.integer :previous_omein_vg
-      t.integer :previous_omein_vp
-      t.integer :previous_prana_vg
-      t.integer :previous_prana_vp
-      t.string :previous_rank
+      t.integer :omein_vg, default: 0
+      t.integer :omein_vp, default: 0
+      t.integer :prana_vg, default: 0
+      t.integer :prana_vp, default: 0
+      t.string :rank, default: "Empresario"
     end
+
+    add_index :summaries, [:user_id, :period_start, :period_end], unique: true
   end
 end
