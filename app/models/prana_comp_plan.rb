@@ -82,8 +82,21 @@ class PranaCompPlan
     level_1_payments = 0
     level_2_payments = 0
     level_3_payments = 0
+    
+    inactive_users = User.all - users 
+
+    inactive_users.each do |inactive_user|
+      vp = inactive_user.prana_get_personal_volume(period_start, period_end) 
+      vg = inactive_user.prana_get_group_volume(period_start, period_end)
+      Summary.prana_populate inactive_user, period_start, period_end, vp, vg
+    end
 
     users.each do |user|
+              
+      vp = user.prana_get_personal_volume(period_start, period_end) 
+      vg = user.prana_get_group_volume(period_start, period_end)
+
+      Summary.prana_populate user, period_start, period_end, vp, vg
 
       if user.placement_upline
         uplines = User.prana_check_activity_recursive_upline_3_levels_no_compression(user.placement_upline, [],

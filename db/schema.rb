@@ -170,7 +170,7 @@ ActiveRecord::Schema.define(version: 20181004232355) do
     t.integer "omein_vp", default: 0
     t.integer "prana_vg", default: 0
     t.integer "prana_vp", default: 0
-    t.string "rank", default: "Empresario"
+    t.string "rank", default: "N/A"
     t.index ["user_id", "period_start", "period_end"], name: "index_summaries_on_user_id_and_period_start_and_period_end", unique: true
     t.index ["user_id"], name: "index_summaries_on_user_id"
   end
@@ -210,7 +210,7 @@ ActiveRecord::Schema.define(version: 20181004232355) do
     t.string "iuvare_id"
     t.boolean "quick_start_paid", default: false
     t.string "phone_alt"
-    t.string "max_rank", default: "Empresario"
+    t.string "max_rank", default: "N/A"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["external_id"], name: "index_users_on_external_id", unique: true

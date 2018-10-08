@@ -17,14 +17,14 @@ class Summary < ApplicationRecord
     current_summary = Summary.find_or_create_by(user: user, period_start: period_start, period_end: period_end)
     current_summary.omein_vp = vp
     current_summary.omein_vg = vg
+    current_summary.rank = rank
     current_summary.save!
-
-    next_summary = Summary.find_or_create_by(user: user, period_start: (period_start + 1.month), period_end: (period_end + 1.month))
-    next_summary.omein_vp = vp
-    next_summary.omein_vg = vg
-    next_summary.rank = rank
-    next_summary.save!
     
+  end
+
+  def self.omein_update user, period_start, period_end, value_hash
+    current_summary = Summary.find_or_create_by(user: user, period_start: period_start, period_end: period_end)
+    current_summary.update_attributes value_hash
   end
 
   def self.prana_populate user, period_start, period_end, vp, vg
@@ -33,11 +33,6 @@ class Summary < ApplicationRecord
     current_summary.prana_vp = vp
     current_summary.prana_vg = vg
     current_summary.save!
-
-    next_summary = Summary.find_or_create_by(user: user, period_start: (period_start + 1.month), period_end: (period_end + 1.month))
-    next_summary.prana_vp = vp
-    next_summary.prana_vg = vg
-    next_summary.save!
 
   end
 
@@ -128,7 +123,7 @@ class Summary < ApplicationRecord
       formatted_summary[:previous_month][:prana_vp] = 0 
 
       #ranks
-      formatted_summary[:ranks][:previous] = "Empresario"
+      formatted_summary[:ranks][:previous] = "Inactivo"
       formatted_summary[:ranks][:max] = user.max_rank 
 
     end

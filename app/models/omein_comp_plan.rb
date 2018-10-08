@@ -40,7 +40,7 @@ class OmeinCompPlan
     fiftyks_with_vg: [0, 1, 2, 3, 4, 5, 6, 7, 8]
   }
 
-  RANKS = ["Empresario", "1K", "3K", "7K", "10K", "20K", "30K", "50K", "100K", "200K", "500K"]
+  RANKS = ["N/A", "Empresario", "1K", "3K", "7K", "10K", "20K", "30K", "50K", "100K", "200K", "500K"]
   
   def self.calculate_active_cycles period_start, period_end
 
@@ -51,6 +51,9 @@ class OmeinCompPlan
     users.each do |user|
 
       if not user.omein_active_for_period period_start, period_end 
+        vp = user.omein_get_personal_volume(period_start, period_end) 
+        vg = user.omein_get_group_volume(period_start, period_end)
+        Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
         next
       end
 
@@ -73,9 +76,13 @@ class OmeinCompPlan
         end
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
+          vp = user.omein_get_personal_volume(period_start, period_end) 
+          vg = user.omein_get_group_volume(period_start, period_end)
+        
           # Active Cycle eligible 
-          users_with_active_cycle_and_vg << {user: user, vp: user.omein_get_personal_volume(period_start, period_end),
-                                             vg: user.omein_get_group_volume(period_start, period_end) }
+          Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
+          users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
+          user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
         else
           inactive_downlines.each do |inactive_downline|
             downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, COMPANY_OMEIN
@@ -84,9 +91,14 @@ class OmeinCompPlan
             end
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
+          
+              vp = user.omein_get_personal_volume(period_start, period_end) 
+              vg = user.omein_get_group_volume(period_start, period_end)
+
               # Active Cycle eligible
-              users_with_active_cycle_and_vg << {user: user, vp: user.omein_get_personal_volume(period_start, period_end),
-                                                 vg: (user.omein_get_group_volume period_start, period_end) }
+              Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
+              users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
+              user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
               break          
             end
             
@@ -109,6 +121,8 @@ class OmeinCompPlan
       if user_with_vg[:vg] >= ONEK_VOLUME
         oneks_with_vg << user_with_vg
         oneks << user_with_vg[:user]
+        Summary.omein_update user_with_vg[:user], period_start, period_end, {rank: "1K"} 
+        user_with_vg[:user].update_attribute(:max_rank, "1K") if RANKS.index(user_with_vg[:user].max_rank) < RANKS.index("1K")
       end
       
     end
@@ -140,6 +154,8 @@ class OmeinCompPlan
         if eligible_1ks >= 2
           threeks_with_vg << onek_with_vg
           threeks << onek_with_vg[:user]
+          Summary.omein_update onek_with_vg[:user], period_start, period_end, {rank: "3K"} 
+          onek_with_vg[:user].update_attribute(:max_rank, "3K") if RANKS.index(onek_with_vg[:user].max_rank) < RANKS.index("3K")
         end
 
       end
@@ -171,6 +187,8 @@ class OmeinCompPlan
         
         if eligible_3ks >= 2
           sevenks_with_vg << threek_with_vg
+          Summary.omein_update threek_with_vg[:user], period_start, period_end, {rank: "7K"} 
+          threek_with_vg[:user].update_attribute(:max_rank, "7K") if RANKS.index(threek_with_vg[:user].max_rank) < RANKS.index("7K")
         end
 
       end
@@ -207,6 +225,8 @@ class OmeinCompPlan
         
         if eligible_3ks >= 3
           tenks_with_vg << sevenk_with_vg
+          Summary.omein_update sevenk_with_vg[:user], period_start, period_end, {rank: "10K"} 
+          sevenk_with_vg[:user].update_attribute(:max_rank, "10K") if RANKS.index(sevenk_with_vg[:user].max_rank) < RANKS.index("10K")
         end
 
       end
@@ -242,6 +262,8 @@ class OmeinCompPlan
         
         if eligible_3ks >= 5
           twentyks_with_vg << tenk_with_vg
+          Summary.omein_update tenk_with_vg[:user], period_start, period_end, {rank: "20K"} 
+          tenk_with_vg[:user].update_attribute(:max_rank, "20K") if RANKS.index(tenk_with_vg[:user].max_rank) < RANKS.index("20K")
         end
 
       end
@@ -277,6 +299,8 @@ class OmeinCompPlan
         
         if eligible_3ks >= 7
           thirtyks_with_vg << twentyk_with_vg
+          Summary.omein_update twentyk_with_vg[:user], period_start, period_end, {rank: "30K"} 
+          twentyk_with_vg[:user].update_attribute(:max_rank, "30K") if RANKS.index(twentyk_with_vg[:user].max_rank) < RANKS.index("30K")
         end
 
       end
@@ -312,6 +336,8 @@ class OmeinCompPlan
         
         if eligible_3ks >= 10
           fiftyks_with_vg << thirtyk_with_vg
+          Summary.omein_update thirtyk_with_vg[:user], period_start, period_end, {rank: "50K"} 
+          thirtyk_with_vg[:user].update_attribute(:max_rank, "50K") if RANKS.index(thirtyk_with_vg[:user].max_rank) < RANKS.index("50K")
         end
 
       end
@@ -423,6 +449,14 @@ class OmeinCompPlan
     level_7_payments = 0
     level_8_payments = 0
     level_9_payments = 0
+
+    inactive_users = User.all - users 
+
+    inactive_users.each do |inactive_user|
+      vp = inactive_user.omein_get_personal_volume(period_start, period_end) 
+      vg = inactive_user.omein_get_group_volume(period_start, period_end)
+      Summary.omein_populate inactive_user, period_start, period_end, vp, vg, "N/A"
+    end
 
     qualified_ranks = OmeinCompPlan.calculate_ranks period_start, period_end
 
