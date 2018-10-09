@@ -14,7 +14,7 @@ class Summary < ApplicationRecord
   #user_id, period_start, period_end, omein_vg, omein_vp, prana_vg, prana_vp, rank
   def self.omein_populate user, period_start, period_end, vp, vg, rank
 
-    current_summary = Summary.find_or_create_by(user: user, period_start: period_start, period_end: period_end)
+    current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     current_summary.omein_vp = vp
     current_summary.omein_vg = vg
     current_summary.rank = rank
@@ -23,13 +23,13 @@ class Summary < ApplicationRecord
   end
 
   def self.omein_update user, period_start, period_end, value_hash
-    current_summary = Summary.find_or_create_by(user: user, period_start: period_start, period_end: period_end)
+    current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     current_summary.update_attributes value_hash
   end
 
   def self.prana_populate user, period_start, period_end, vp, vg
 
-    current_summary = Summary.find_or_create_by(user: user, period_start: period_start, period_end: period_end)
+    current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     current_summary.prana_vp = vp
     current_summary.prana_vg = vg
     current_summary.save!
@@ -58,6 +58,38 @@ class Summary < ApplicationRecord
 
   end
 
+  def self.by_period_for_user_with_downlines user, period_start, period_end
+
+    downlines = user.placement_downlines
+    summary_for_period = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
+    return_data = {user: 
+                    {id: user.id, external_id: user.external_id, first_name: user.first_name, last_name: user.last_name}, 
+                  summary: 
+                    {omein_vp: summary_for_period.omein_vp, omein_vg: summary_for_period.omein_vg, 
+                      prana_vp: summary_for_period.prana_vp, prana_vg: summary_for_period.prana_vg, 
+                      rank: summary_for_period.rank, period_start: summary_for_period.period_start, 
+                      period_end: summary_for_period.period_end}} 
+
+    if downlines.count == 0
+
+      return_data[:downlines] = []
+      return return_data
+
+    else
+
+      downlines_with_summary = []
+
+      downlines.each do |downline|
+        downlines_with_summary << self.by_period_for_user_with_downlines(downline, period_start, period_end)
+      end
+
+      return_data[:downlines] = downlines_with_summary
+      return return_data
+
+    end
+
+  end
+
   def self.current_by_user user
 
     current_period_start = Time.zone.now.beginning_of_month
@@ -78,6 +110,8 @@ class Summary < ApplicationRecord
       current_month = I18n.t Date::MONTHNAMES[current_summary.period_start.month] 
 
       formatted_summary[:current_month][:name] = current_month
+      formatted_summary[:current_month][:period_start] = current_summary.period_start
+      formatted_summary[:current_month][:period_end] = current_summary.period_end
       formatted_summary[:current_month][:omein_vg] = current_summary.omein_vg 
       formatted_summary[:current_month][:omein_vp] = current_summary.omein_vp
       formatted_summary[:current_month][:prana_vg] = current_summary.prana_vg
@@ -89,6 +123,8 @@ class Summary < ApplicationRecord
       current_month = I18n.t Date::MONTHNAMES[current_period_start.month] 
 
       formatted_summary[:current_month][:name] = current_month
+      formatted_summary[:current_month][:period_start] = current_period_start
+      formatted_summary[:current_month][:period_end] = current_period_end
       formatted_summary[:current_month][:omein_vg] = 0 
       formatted_summary[:current_month][:omein_vp] = 0
       formatted_summary[:current_month][:prana_vg] = 0 
@@ -102,6 +138,8 @@ class Summary < ApplicationRecord
       previous_month = I18n.t Date::MONTHNAMES[previous_summary.period_start.month]
 
       formatted_summary[:previous_month][:name] = previous_month
+      formatted_summary[:previous_month][:period_start] = previous_summary.period_start
+      formatted_summary[:previous_month][:period_end] = previous_summary.period_end
       formatted_summary[:previous_month][:omein_vg] = previous_summary.omein_vg
       formatted_summary[:previous_month][:omein_vp] = previous_summary.omein_vp
       formatted_summary[:previous_month][:prana_vg] = previous_summary.prana_vg
@@ -117,6 +155,8 @@ class Summary < ApplicationRecord
       previous_month = I18n.t Date::MONTHNAMES[(current_period_start - 1.month).month]
 
       formatted_summary[:previous_month][:name] = previous_month
+      formatted_summary[:previous_month][:period_start] = (current_period_start - 1.month)
+      formatted_summary[:previous_month][:period_end] = (current_period_end - 1.month)
       formatted_summary[:previous_month][:omein_vg] = 0
       formatted_summary[:previous_month][:omein_vp] = 0
       formatted_summary[:previous_month][:prana_vg] = 0
@@ -128,6 +168,7 @@ class Summary < ApplicationRecord
 
     end
       
+    I18n.locale = :en
     return formatted_summary
   end
   

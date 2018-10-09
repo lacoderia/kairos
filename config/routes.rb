@@ -30,6 +30,7 @@ Rails.application.routes.draw do
     collection do
       get 'by_external_id'
       get 'summary'
+      get 'summary_by_period_with_downlines'
     end
   end
   
