@@ -5,6 +5,14 @@ Rails.application.routes.draw do
   resources :payments
   resources :emails
   resources :roles
+
+  resources :summaries do
+    collection do
+      get 'by_period_with_downlines'
+      get 'by_period_and_user_with_downlines_1_level'
+    end
+  end
+
   resources :invitations do
     collection do
       get 'by_user'
@@ -30,7 +38,6 @@ Rails.application.routes.draw do
     collection do
       get 'by_external_id'
       get 'summary'
-      get 'summary_by_period_with_downlines'
     end
   end
   

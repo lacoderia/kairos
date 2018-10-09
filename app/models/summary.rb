@@ -58,6 +58,53 @@ class Summary < ApplicationRecord
 
   end
 
+  def self.by_period_and_user_with_downlines_1_level user, period_start, period_end
+
+    downlines = user.placement_downlines
+    summary_for_period = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
+    return_data = {user: 
+                    {id: user.id, external_id: user.external_id, first_name: user.first_name, last_name: user.last_name}, 
+                  summary: 
+                    {omein_vp: summary_for_period.omein_vp, omein_vg: summary_for_period.omein_vg, 
+                      prana_vp: summary_for_period.prana_vp, prana_vg: summary_for_period.prana_vg, 
+                      rank: summary_for_period.rank, period_start: summary_for_period.period_start, 
+                      period_end: summary_for_period.period_end}} 
+
+    if downlines.count == 0
+
+      return_data[:downlines] = []
+      return return_data
+
+    else
+
+      downlines_with_summary = []
+
+      downlines.each do |downline|
+
+        downline_summary_for_period = Summary.find_or_create_by(user: downline, period_start: period_start.to_datetime,
+                                                                period_end: period_end.to_datetime)
+
+        downline_data = {user: 
+                          {id: downline.id, external_id: downline.external_id, first_name: downline.first_name, 
+                           last_name: downline.last_name},
+                        summary: 
+                          {omein_vp: downline_summary_for_period.omein_vp, omein_vg: downline_summary_for_period.omein_vg, 
+                          prana_vp: downline_summary_for_period.prana_vp, prana_vg: downline_summary_for_period.prana_vg, 
+                          rank: downline_summary_for_period.rank, period_start: downline_summary_for_period.period_start, 
+                          period_end: downline_summary_for_period.period_end},
+                        downlines: []} 
+
+        downlines_with_summary << downline_data
+
+      end
+
+      return_data[:downlines] = downlines_with_summary
+      return return_data
+
+    end
+
+  end
+
   def self.by_period_for_user_with_downlines user, period_start, period_end
 
     downlines = user.placement_downlines
