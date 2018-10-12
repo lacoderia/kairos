@@ -9,7 +9,7 @@ class PranaCompPlan
   ACTIVE_DOWNLINES_FOR_QUICK_START = 3
 
   
-  def self.calculate_quick_starts period_start, period_end, launch_event
+  def self.calculate_quick_starts period_start, period_end, launch_event = false
 
     users = User.joins(:orders).where("users.quick_start_paid = ? AND orders.created_at between ? AND ?", false, period_start, period_end).order("external_id desc").uniq
 
@@ -19,7 +19,9 @@ class PranaCompPlan
 
     users.each do |user|
 
-      unless user.prana_active_for_period period_start, period_end, true
+      # discard inactive users or ones that have created_at outside the period it is being paid
+      if (not user.prana_active_for_period period_start, period_end, true) or 
+        (user.created_at.beginning_of_day < period_start and user.created_at.beginning_of_day >= period_end)
         next
       end
 
@@ -30,14 +32,23 @@ class PranaCompPlan
         inactive_downlines = []
         
         downlines.each do |downline|
+        
+          # check created_at of downline within the period it is being paid
+          if downline.created_at.beginning_of_day < period_start and downline.created_at.beginning_of_day >= period_end 
+            next
+          end
+          
+          prana_orders_in_period = 0
+          
           if launch_event
             prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
                                                                          COMPANY_PRANA, period_start, period_end).count
           else
-            sign_up_in_prana = user.created_at.beginning_of_day 
-            deadline = sign_up_in_prana + 1.month + 1.day
+            user_sign_up_in_prana = user.created_at.beginning_of_day 
+            user_deadline = user_sign_up_in_prana + 1.month + 1.day
             prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?",
-                                                                         COMPANY_PRANA, sign_up_in_prana, deadline).count
+                                                                         COMPANY_PRANA, user_sign_up_in_prana, user_deadline).count
+
           end
 
           if prana_orders_in_period > 0

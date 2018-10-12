@@ -153,6 +153,28 @@ class User < ApplicationRecord
     
   end
 
+  def omein_get_power_start_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
+
+
+    current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
+                                                       company, period_start, period_end)
+
+    power_start_volume = 0
+
+    if current_omein_orders.count > 0
+
+      current_omein_orders.first.items.each do |item|
+            
+        power_start_volume += item.volume
+          
+      end
+
+    end
+
+    return power_start_volume
+
+  end
+
   def omein_get_comissionable_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     #return self.omein_get_personal_volume period_start, period_end
@@ -333,6 +355,27 @@ class User < ApplicationRecord
       end
     end
 
+  end
+
+  def self.omein_check_activity_recursive_upline_2_levels_compression upline, qualified_uplines, period_start, period_end
+
+    if upline == nil or qualified_uplines.count == 2
+      return qualified_uplines
+    else
+
+      if (upline.omein_active_for_period (period_start - 6.weeks), period_end, 100) and (qualified_uplines.count == 0)
+        qualified_uplines << upline
+      elsif (upline.omein_active_for_period (period_start - 6.weeks), period_end, 200) and (qualified_uplines.count == 1)
+        qualified_uplines << upline
+      else
+        if upline.placement_upline
+          return User.omein_check_activity_recursive_upline_2_levels_compression(upline.placement_upline, qualified_uplines, 
+            period_start, period_end)
+        else
+          return qualified_uplines
+        end
+      end
+    end
   end
 
   def self.omein_check_activity_recursive_upline_9_levels_compression upline, qualified_uplines, qualified_ranks, period_start, period_end

@@ -222,6 +222,31 @@ feature 'UsersController' do
         expect(response['users'].count).to eql 1
 
       end
+      
     end
+
+  context 'get summary' do
+    let!(:user_01){ create(:user, :confirmed) }
+    let!(:summary){ create(:summary, user: user_01) }
+    let!(:prev_summary){ create(:summary, user: user_01, period_start: summary.period_start - 1.month,
+                                period_end: summary.period_end - 1.month) }
+
+    it 'should get summary for user' do
+
+      login_with_service user = { email: user_01.email, password: "12345678" }
+      access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
+      set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
+
+      visit summary_users_path
+      response = JSON.parse(page.body)
+      expect(response.length).to eql 3
+
+      logout
+      
+      expect {visit summary_users_path}.to raise_error.with_message('You are not authorized to access this page.')
+
+    end
+
+  end
 
 end

@@ -25,6 +25,10 @@ class Payment < ApplicationRecord
   
   def self.prana_add_quick_start user, period_start, period_end, from_users
 
+    if user.quick_start_paid
+      raise 'User already has been paid quick start'
+    end
+
     user.payments << Payment.create!(payment_type: 'PRANA_QUICK_START', amount: PranaCompPlan::QUICK_START, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
     user.update_attribute(:quick_start_paid, true)
     

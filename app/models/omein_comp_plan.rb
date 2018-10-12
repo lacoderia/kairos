@@ -404,6 +404,40 @@ class OmeinCompPlan
   
   def self.calculate_power_starts period_start, period_end 
 
+    users = User.joins(:orders => :items).where("users.created_at between ? AND ? AND orders.created_at between ? AND ?
+                                                AND items.company = ?", period_start, period_end, period_start, period_end,
+                                                COMPANY_OMEIN).order("external_id desc").uniq
+
+    puts "#{users.count} usuarios nuevos con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
+    
+    level_1_payments = 0
+    level_2_payments = 0
+
+    users.each do |user|
+
+      power_start_volume = user.omein_get_power_start_volume period_start, period_end
+
+      uplines = User.omein_check_activity_recursive_upline_2_levels_compression(user.placement_upline, [],
+                                                                                            period_start, period_end)
+
+      base_volume = (power_start_volume/100)*COMISSIONABLE_VALUE
+      
+      if uplines[0]
+        Payment.omein_add_power_start_25 uplines[0], period_start, period_end, [user], base_volume 
+        level_1_payments += 1
+        puts "pago de 25% al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
+      end
+      if uplines[1]
+        Payment.omein_add_power_start_15 uplines[1], period_start, period_end, [user], base_volume 
+        level_2_payments += 1
+        puts "pago de 15% al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
+      end
+
+    end
+
+    puts "#{level_1_payments} pagos de 25% en el periodo #{period_start} - #{period_end}"
+    puts "#{level_2_payments} pagos de 15% en el periodo #{period_start} - #{period_end}"
+
   end
 
   def self.check_user_in_qualificated_ranks upline, qualified_ranks, qualified_uplines_count
@@ -436,7 +470,8 @@ class OmeinCompPlan
 
   def self.calculate_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?",
+                                                COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
 
