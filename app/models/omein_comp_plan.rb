@@ -50,10 +50,11 @@ class OmeinCompPlan
 
     users.each do |user|
 
+      vp = user.omein_get_personal_volume(period_start, period_end) 
+      vg = user.omein_get_group_volume(period_start, period_end)
+      Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
+      
       if not user.omein_active_for_period period_start, period_end 
-        vp = user.omein_get_personal_volume(period_start, period_end) 
-        vg = user.omein_get_group_volume(period_start, period_end)
-        Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
         next
       end
 
@@ -76,9 +77,6 @@ class OmeinCompPlan
         end
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
-          vp = user.omein_get_personal_volume(period_start, period_end) 
-          vg = user.omein_get_group_volume(period_start, period_end)
-        
           # Active Cycle eligible 
           Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
           users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
@@ -91,10 +89,6 @@ class OmeinCompPlan
             end
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
-          
-              vp = user.omein_get_personal_volume(period_start, period_end) 
-              vg = user.omein_get_group_volume(period_start, period_end)
-
               # Active Cycle eligible
               Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
               users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
@@ -414,6 +408,10 @@ class OmeinCompPlan
     level_2_payments = 0
 
     users.each do |user|
+
+      vp = user.omein_get_personal_volume(period_start, period_end) 
+      vg = user.omein_get_group_volume(period_start, period_end)
+      Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), vp, vg, "N/A"
 
       power_start_volume = user.omein_get_power_start_volume period_start, period_end
 
