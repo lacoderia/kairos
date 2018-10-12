@@ -363,9 +363,9 @@ class User < ApplicationRecord
       return qualified_uplines
     else
 
-      if (upline.omein_active_for_period (period_start - 6.weeks), period_end, 100) and (qualified_uplines.count == 0)
+      if (upline.omein_active_for_period (period_end - 6.weeks), period_end, 100) and (qualified_uplines.count == 0)
         qualified_uplines << upline
-      elsif (upline.omein_active_for_period (period_start - 6.weeks), period_end, 200) and (qualified_uplines.count == 1)
+      elsif (upline.omein_active_for_period (period_end - 6.weeks), period_end, 200) and (qualified_uplines.count == 1)
         qualified_uplines << upline
       else
         if upline.placement_upline

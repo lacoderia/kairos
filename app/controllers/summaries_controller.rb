@@ -3,6 +3,18 @@ class SummariesController < ApiController
   load_and_authorize_resource
   before_action :authenticate_user!
 
+   # GET /for_user
+  def for_user
+    begin
+      summary = Summary.current_by_user current_user    
+      render json: summary
+    rescue Exception => e
+      summary = Summary.new
+      summary.errors.add(:error_getting_summary, "Existió un error obteniendo el resumen.")
+      render json: ErrorSerializer.serialize(summary.errors), status: 500
+    end
+  end
+
   def by_period_and_user_with_downlines_1_level
     begin
       summaries_with_downlines = Summary.by_period_and_user_with_downlines_1_level User.find(params[:user_id]), 
