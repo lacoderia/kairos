@@ -2,7 +2,7 @@
 
 <p>Hemos recibido tu información de registro.</p>
 
-<p>Entra a la siguiente liga para confirmar que este email está asociado a tu cuenta: <a href='<%="http://#{ENV['FRONTEND_HOST']}/register?confirmation_token=#{@token}" %>'>Confirmar mi cuenta</a>
+<p>Entra a la siguiente liga para confirmar que este email está asociado a tu cuenta: <a href='<%="http://#{Rails.application.secrets.frontend_host}/register?confirmation_token=#{@token}" %>'>Confirmar mi cuenta</a>
 </p>
 
 <p>Si tienes alguna duda escríbenos a <a href="mailto:admin@futuranetwork.com">admin@futuranetwork.com</a></p>
