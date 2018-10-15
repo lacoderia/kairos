@@ -40,16 +40,16 @@ class User < ApplicationRecord
     unless user
       if token
         if self.external_id == self.sponsor_external_id or self.external_id == self.placement_external_id
-          self.errors.add(:registration, "Tu ID de PRANA no puede ser igual que el de tu auspiciador.")
+          self.errors.add(:registration, "Tu ID de Futura no puede ser igual que el de tu auspiciador.")
           false
         elsif User.where("external_id = ?", self.external_id).count >= 1
-          self.errors.add(:registration, "Tu ID de PRANA ya está siendo usado por alguien más, por favor escríbenos a contacto@prana.mx")
+          self.errors.add(:registration, "Tu ID de Futura ya está siendo usado por alguien más, por favor escríbenos a admin@futuranetwork.com")
           false
         else
           invitations = Invitation.where("token = ? and used = ?", token, false)
           if invitations.size == 1
             if not (invitations.first.user.external_id == self.sponsor_external_id or invitations.first.user.external_id == self.placement_external_id)
-              self.errors.add(:registration, "El ID de PRANA en patrocinio o colocación debe ser el de la persona que te mandó la invitación.")
+              self.errors.add(:registration, "El ID de Futura en patrocinio o colocación debe ser el de la persona que te mandó la invitación.")
               false
             else
               invitations.first.update_attribute("used", true)

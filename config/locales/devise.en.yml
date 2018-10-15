@@ -18,9 +18,9 @@ en:
       unconfirmed: "You have to confirm your email address before continuing."
     mailer:
       confirmation_instructions:
-        subject: "Kairos: confirma tu correo"
+        subject: "Futura Network: confirma tu correo"
       reset_password_instructions:
-        subject: "Kairos: cambia tu password"
+        subject: "Futura Network: cambia tu password"
       unlock_instructions:
         subject: "Unlock instructions"
       email_changed:

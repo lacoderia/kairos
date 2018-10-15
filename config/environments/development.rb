@@ -1,4 +1,6 @@
 Rails.application.configure do
+
+  ENV['HOST'] = "localhost:3000"  
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded on
@@ -55,4 +57,22 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.read_encrypted_secrets = true
+
+  config.action_mailer.smtp_settings = {
+    tls: true,
+    address: Rails.application.secrets.address,
+    port: 465,
+    domain: Rails.application.secrets.domain_name,
+    authentication: "plain",
+    enable_starttls_auto: true,
+    user_name: Rails.application.secrets.mail_username,
+    password: Rails.application.secrets.mail_password
+  }
+  # ActionMailer Config
+  config.action_mailer.default_url_options = { :host => Rails.application.secrets.host }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true 
+
+  #config.active_job.queue_adapter = :development
 end
