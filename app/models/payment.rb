@@ -10,6 +10,9 @@ class Payment < ApplicationRecord
     'PRANA_LEVEL_3',
     'OMEIN_POWER_START_25',
     'OMEIN_POWER_START_15',
+    'OMEIN_SELLING_BONUS_20',
+    'OMEIN_SELLING_BONUS_10',
+    'OMEIN_SELLING_BONUS_4',
     'OMEIN_LEVEL_1',
     'OMEIN_LEVEL_2',
     'OMEIN_LEVEL_3',
@@ -31,6 +34,24 @@ class Payment < ApplicationRecord
 
     user.payments << Payment.create!(payment_type: 'PRANA_QUICK_START', amount: PranaCompPlan::QUICK_START, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
     user.update_attribute(:quick_start_paid, true)
+    
+  end
+
+  def self.omein_add_selling_bonus_20 user, period_start, period_end, from_users, base_amount
+
+    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_20', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_20), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    
+  end
+
+  def self.omein_add_selling_bonus_10 user, period_start, period_end, from_users, base_amount
+
+    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_10', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_10), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    
+  end
+
+  def self.omein_add_selling_bonus_4 user, period_start, period_end, from_users, base_amount
+
+    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_4', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_4), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
     
   end
 

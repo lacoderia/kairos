@@ -2,16 +2,18 @@ ActiveAdmin.register Order, as: "Ordenes" do
 
   actions :all, :except => [:show]
 
-  permit_params :description, :order_number, :user_ids, :item_ids
+  permit_params :description, :order_number, :user_ids, :item_ids, :created_at
 
   form do |f|
 
     f.semantic_errors *f.object.errors.keys
+    f.object.created_at = DateTime.now
 
     f.inputs "Información de la orden" do
 
       f.input :description, lablel: "Descripción"
       f.input :order_number, lablel: "Número de Orden"
+      f.input :created_at, label: "Creación", as: :datepicker 
 
       if params[:user_id]
       

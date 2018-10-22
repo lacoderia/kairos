@@ -11,7 +11,8 @@ class PranaCompPlan
   
   def self.calculate_quick_starts period_start, period_end, launch_event = false
 
-    users = User.joins(:orders).where("users.quick_start_paid = ? AND orders.created_at between ? AND ?", false, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders).where("users.quick_start_paid = ? AND orders.created_at >= ? AND orders.created_at < ?",
+                                      false, period_start, period_end).order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo en el periodo #{period_start} - #{period_end}"
     
@@ -41,13 +42,15 @@ class PranaCompPlan
           prana_orders_in_period = 0
           
           if launch_event
-            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                                         COMPANY_PRANA, period_start, period_end).count
+            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND
+                                                                         orders.created_at < ?", COMPANY_PRANA, period_start,
+                                                                         period_end).uniq.count
           else
             user_sign_up_in_prana = user.created_at.beginning_of_day 
             user_deadline = user_sign_up_in_prana + 1.month + 1.day
-            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?",
-                                                                         COMPANY_PRANA, user_sign_up_in_prana, user_deadline).count
+            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND
+                                                                         orders.created_at < ?", COMPANY_PRANA, user_sign_up_in_prana,
+                                                                         user_deadline).uniq.count
 
           end
 
@@ -86,7 +89,8 @@ class PranaCompPlan
 
   def self.calculate_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", COMPANY_PRANA, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?",
+                                                COMPANY_PRANA, period_start, period_end).order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo de #{COMPANY_PRANA} en el periodo #{period_start} - #{period_end}"
 

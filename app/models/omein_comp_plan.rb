@@ -17,6 +17,10 @@ class OmeinCompPlan
   POWER_START_25 = 0.25
   POWER_START_15 = 0.15
 
+  SELLING_BONUS_20 = 0.20
+  SELLING_BONUS_10 = 0.10
+  SELLING_BONUS_4 = 0.04
+
   LEVEL_1 = 0.02
   LEVEL_2 = 0.04
   LEVEL_3 = 0.06
@@ -44,7 +48,7 @@ class OmeinCompPlan
   
   def self.calculate_active_cycles period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
 
     users_with_active_cycle_and_vg = []
 
@@ -395,12 +399,72 @@ class OmeinCompPlan
     return ranks
 
   end
-  
+
+  #WEEKLY PERIODS
+  def self.calculate_selling_bonus period_start, period_end
+
+    users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ? AND items.company = ?",
+                                                period_start, period_end, COMPANY_OMEIN).order("external_id desc").uniq
+
+    base_payments = 0
+    level_1_payments = 0
+    level_2_payments = 0
+    level_3_payments = 0
+    level_4_payments = 0
+
+    users.each do |user|
+
+      total_pv = user.omein_get_personal_volume period_start.beginning_of_month, period_end
+      if total_pv > MAX_VOLUME
+
+        weekly_pv = user.omein_get_personal_volume period_start, period_end 
+
+        weekly_pv = weekly_pv - MAX_VOLUME if weekly_pv > MAX_VOLUME
+
+        selling_bonus_pv = total_pv - weekly_pv
+
+        base_volume = (selling_bonus_pv/100)*COMISSIONABLE_VALUE
+        
+        Payment.omein_add_selling_bonus_20 user, period_start, period_end, [user], base_volume 
+        base_payments += 1
+        puts "pago de 20% al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
+
+        uplines = User.omein_check_activity_recursive_upline_4_levels_compression(user.placement_upline, [],
+                                                                                            period_start, period_end)
+
+        if uplines[0]
+          Payment.omein_add_selling_bonus_10 uplines[0], period_start, period_end, [user], base_volume 
+          level_1_payments += 1
+          puts "pago de 10% al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[1]
+          Payment.omein_add_selling_bonus_4 uplines[1], period_start, period_end, [user], base_volume 
+          level_2_payments += 1
+          puts "pago de 4% al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[2]
+          Payment.omein_add_selling_bonus_4 uplines[2], period_start, period_end, [user], base_volume 
+          level_3_payments += 1
+          puts "pago de 4% al usuario #{uplines[2].email} en el periodo #{period_start} - #{period_end}"
+        end
+        if uplines[3]
+          Payment.omein_add_selling_bonus_4 uplines[3], period_start, period_end, [user], base_volume 
+          level_4_payments += 1
+          puts "pago de 4% al usuario #{uplines[3].email} en el periodo #{period_start} - #{period_end}"
+        end
+
+      end
+
+    end
+
+  end
+
+  #WEEKLY PERIODS
   def self.calculate_power_starts period_start, period_end 
 
-    users = User.joins(:orders => :items).where("users.created_at between ? AND ? AND orders.created_at between ? AND ?
-                                                AND items.company = ?", period_start, period_end, period_start, period_end,
-                                                COMPANY_OMEIN).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("users.created_at >= ? AND users.created_at < ? AND orders.created_at >= ? AND
+                                                orders.created_at < ? AND items.company = ?", period_start - 1.month, period_end,
+                                                period_start, period_end, COMPANY_OMEIN).order("external_id desc").uniq
 
     puts "#{users.count} usuarios nuevos con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
     
@@ -408,10 +472,6 @@ class OmeinCompPlan
     level_2_payments = 0
 
     users.each do |user|
-
-      vp = user.omein_get_personal_volume(period_start, period_end) 
-      vg = user.omein_get_group_volume(period_start, period_end)
-      Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), vp, vg, "N/A"
 
       power_start_volume = user.omein_get_power_start_volume period_start, period_end
 
@@ -468,7 +528,7 @@ class OmeinCompPlan
 
   def self.calculate_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at between ? AND ?",
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?",
                                                 COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"

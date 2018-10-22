@@ -104,8 +104,8 @@ class User < ApplicationRecord
   def prana_active_for_period period_start, period_end, verify_min_volume_in_omein = false 
 
     #Activity in PRANA
-    user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                        PranaCompPlan::COMPANY_PRANA, period_start, period_end)
+    user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
+                                                        PranaCompPlan::COMPANY_PRANA, period_start, period_end).uniq
 
     has_product_orders = Order.has_product_orders user_prana_orders
 
@@ -128,8 +128,8 @@ class User < ApplicationRecord
   end
 
   def get_personal_volume period_start, period_end, company
-    user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                        company, period_start, period_end)
+    user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
+                                                        company, period_start, period_end).uniq
 
     volume = 0
     user_orders.each do |order|
@@ -155,18 +155,24 @@ class User < ApplicationRecord
 
   def omein_get_power_start_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
 
-
-    current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                       company, period_start, period_end)
+    previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start).uniq
 
     power_start_volume = 0
 
-    if current_omein_orders.count > 0
+    if not previous_omein_orders.count > 0
 
-      current_omein_orders.first.items.each do |item|
+      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
+                                                       company, period_start, period_end).uniq
+
+
+      if current_omein_orders.count > 0
+  
+        current_omein_orders.first.items.each do |item|
             
-        power_start_volume += item.volume
+          power_start_volume += item.volume
           
+        end
+
       end
 
     end
@@ -196,8 +202,8 @@ class User < ApplicationRecord
       
     else
 
-      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at between ? and ?", 
-                                                       company, period_start, period_end)
+      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
+                                                       company, period_start, period_end).uniq
  
       if current_omein_orders.count > 1
 
@@ -357,6 +363,25 @@ class User < ApplicationRecord
 
   end
 
+  def self.omein_check_activity_recursive_upline_4_levels_compression upline, qualified_uplines, period_start, period_end
+
+    if upline == nil or qualified_uplines.count == 4
+      return qualified_uplines
+    else
+
+      if (upline.omein_active_for_period (period_end - 6.weeks), period_end, 200)
+        qualified_uplines << upline
+      else
+        if upline.placement_upline
+          return User.omein_check_activity_recursive_upline_4_levels_compression(upline.placement_upline, qualified_uplines, 
+            period_start, period_end)
+        else
+          return qualified_uplines
+        end
+      end
+    end
+  end
+
   def self.omein_check_activity_recursive_upline_2_levels_compression upline, qualified_uplines, period_start, period_end
 
     if upline == nil or qualified_uplines.count == 2
@@ -431,6 +456,25 @@ class User < ApplicationRecord
         puts "Árbol sin upline de patrocinio para el usuario con ID #{user.external_id}"
         return false
       end
+    end
+
+  end
+
+  def self.update_summaries period_start, period_end
+    
+    #users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ?", period_start,
+    #                                            period_end,).order("external_id desc").uniq
+
+    User.all.each do |user|
+
+      omein_vp = user.omein_get_personal_volume(period_start, period_end) 
+      omein_vg = user.omein_get_group_volume(period_start, period_end)
+      prana_vp = user.prana_get_personal_volume(period_start, period_end)
+      prana_vg = user.prana_get_group_volume(period_start, period_end)
+
+      Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), omein_vp, omein_vg, "N/A"
+      Summary.prana_populate user, period_start.beginning_of_month,  (period_start + 1.month), prana_vp, prana_vg
+      
     end
 
   end

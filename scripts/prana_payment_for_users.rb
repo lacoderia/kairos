@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 require_relative "../config/environment"
 
-PERIOD_START = "2018-08-01"
-PERIOD_END = "2018-09-01"
+PERIOD_START = Time.zone.now.beginning_of_month - 1.month
+PERIOD_END =  Time.zone.now.beginning_of_month
 
-CSV.open("payments_prana_agosto.csv", "wb") do |csv|
+CSV.open("payments_prana_septiembre.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ BONO RAPIDO", "IDS BONO RAPIDO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ TOTAL", "$ MAXIMO" ]
-  users = User.joins(:orders).where("orders.created_at between ? AND ?", PERIOD_START, PERIOD_END).order("external_id desc")
+  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ?", PERIOD_START, PERIOD_END).order("external_id desc")
     
   users.uniq.each do |user|
 
@@ -55,7 +55,7 @@ CSV.open("payments_prana_agosto.csv", "wb") do |csv|
     level_2_ids = level_2_ids*"," 
     level_3_ids = level_3_ids*"," 
 
-    user_txt = ["#{user.external_id}", "#{user.first_name}", "#{user.last_name}", "#{user.email}", "#{quick_start}", "#{quick_start_ids}", "#{level_1}", "#{level_1_ids}", "#{level_2}", "#{level_2_ids}", "#{level_3}", "#{level_3_ids}", "#{total}", "#{total_maximo}"]
+    user_txt = ["#{user.external_id}", "#{user.first_name}", "#{user.last_name}", "#{user.email}", "#{quick_start.round(2)}", "#{quick_start_ids}", "#{level_1.round(2)}", "#{level_1_ids}", "#{level_2.round(2)}", "#{level_2_ids}", "#{level_3.round(2)}", "#{level_3_ids}", "#{total.round(2)}", "#{total_maximo.round(2)}"]
     csv << user_txt
   end
 end
