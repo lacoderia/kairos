@@ -419,9 +419,13 @@ class OmeinCompPlan
 
         weekly_pv = user.omein_get_personal_volume period_start, period_end 
 
-        weekly_pv = weekly_pv - MAX_VOLUME if weekly_pv > MAX_VOLUME
+        excedent_pv = total_pv - MAX_VOLUME
 
-        selling_bonus_pv = total_pv - weekly_pv
+        if excedent_pv < weekly_pv
+          selling_bonus_pv = excedent_pv
+        else
+          selling_bonus_pv = weekly_pv
+        end
 
         base_volume = (selling_bonus_pv/100)*COMISSIONABLE_VALUE
         
