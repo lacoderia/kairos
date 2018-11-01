@@ -11,10 +11,10 @@ class PranaCompPlan
   
   def self.calculate_quick_starts period_start, period_end, launch_event = false
 
-    users = User.joins(:orders).where("users.quick_start_paid = ? AND orders.created_at >= ? AND orders.created_at < ?",
-                                      false, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("users.quick_start_paid = ? AND orders.created_at >= ? AND orders.created_at < 
+                                                ? AND items.company = ?", false, period_start.beginning_of_month, period_start + 1.month,
+                                                COMPANY_PRANA).order("external_id desc").uniq
 
-    puts "#{users.count} usuarios con consumo en el periodo #{period_start} - #{period_end}"
     
     quick_start_payments = 0
 
@@ -83,7 +83,7 @@ class PranaCompPlan
       end
     end
 
-    puts "#{quick_start_payments} pagos de power start en el periodo #{period_start} - #{period_end}"
+    puts "#{quick_start_payments} pagos de quick start en el periodo #{period_start} - #{period_end}"
 
   end
 
