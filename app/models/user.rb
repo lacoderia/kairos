@@ -392,13 +392,13 @@ class User < ApplicationRecord
         qualified_uplines << upline
       elsif (upline.omein_active_for_period (period_end - 6.weeks), period_end, 200) and (qualified_uplines.count == 1)
         qualified_uplines << upline
+      end
+
+      if upline.placement_upline
+        return User.omein_check_activity_recursive_upline_2_levels_compression(upline.placement_upline, qualified_uplines, 
+          period_start, period_end)
       else
-        if upline.placement_upline
-          return User.omein_check_activity_recursive_upline_2_levels_compression(upline.placement_upline, qualified_uplines, 
-            period_start, period_end)
-        else
-          return qualified_uplines
-        end
+        return qualified_uplines
       end
     end
   end
