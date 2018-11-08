@@ -9,7 +9,9 @@ ActiveAdmin.register Order, as: "Ordenes" do
     column "Descripción", :description
     column "Fecha Creación", :created_at
     column "Num Orden", :order_number
-    column "User ID", :user_ids
+    column "User ID" do |order|
+      User.find(order.user_ids.first).external_id
+    end
     
     actions defaults: true
   end
