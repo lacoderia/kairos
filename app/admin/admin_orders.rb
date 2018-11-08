@@ -12,6 +12,10 @@ ActiveAdmin.register Order, as: "Ordenes" do
     column "User ID" do |order|
       User.find(order.user_ids.first).external_id
     end
+    column "Item" do |order|
+      item = Item.find(order.item_ids.first)
+      "#{item.company}-#{item.name}"
+    end
     
     actions defaults: true
   end
