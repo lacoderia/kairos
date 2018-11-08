@@ -4,6 +4,16 @@ ActiveAdmin.register Order, as: "Ordenes" do
 
   permit_params :description, :order_number, :user_ids, :item_ids, :created_at
 
+  index title: "Ordenes" do
+    column "ID", :id
+    column "Descripción", :description
+    column "Fecha Creación", :created_at
+    column "Num Orden", :order_number
+    column "User ID", :user_ids
+    
+    actions defaults: true
+  end
+
   form do |f|
 
     f.semantic_errors *f.object.errors.keys
