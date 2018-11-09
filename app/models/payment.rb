@@ -66,7 +66,7 @@ class Payment < ApplicationRecord
 
   def self.omein_add_power_start_15 user, period_start, period_end, from_users, base_amount
 
-    user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_25', amount: (base_amount*OmeinCompPlan::POWER_START_15), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_15', amount: (base_amount*OmeinCompPlan::POWER_START_15), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
     
   end
 
