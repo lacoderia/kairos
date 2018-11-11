@@ -39,4 +39,15 @@ class SummariesController < ApiController
     end
   end
 
+  def send_summary 
+    begin
+      Summary.send_summary current_user, params[:period_start], params[:period_end]
+      render status :ok
+    rescue Exception => e
+      summary = Summary.new
+      summary.errors.add(:error_sending_summary_for_user, "Existió un error enviando el resumen.")
+      render json: ErrorSerializer.serialize(summary.errors), status: 500
+    end
+  end 
+
 end

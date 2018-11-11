@@ -8,4 +8,11 @@ class KairosMailer < ActionMailer::Base
     mail(to: invitation.recipient_email, subject: "Te invitamos a registrarte a Futura Network")
   end
 
+  def send_summary user, data
+    @user = user
+    @filepath = data[:filepath]
+    @month = data[:month]
+    mail(to: @user.email, subject: "Tu reporte de FuturaNetwork del mes de #{@month}")
+  end
+
 end

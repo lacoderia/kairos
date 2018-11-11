@@ -218,6 +218,62 @@ class Summary < ApplicationRecord
     I18n.locale = :en
     return formatted_summary
   end
+
+  def self.send_summary user, period_start, period_end 
+
+    result = self.create_summary user, period_start, period_end
+    SendEmailJob.perform_later("send_summary", user, result) 
+
+  end
+
+  def self.create_summary user, period_start, period_end
+
+    directory_name = "public/reports/#{user.external_id}"
+    public_directory_name = "reports/#{user.external_id}"
+    Dir.mkdir(directory_name) unless File.exists?(directory_name)
+    I18n.locale = :es
+    month_name = I18n.t Date::MONTHNAMES[period_start.month]
+    I18n.locale = :en
+  
+    filepath = "#{directory_name}/#{Time.zone.now.to_i}_#{user.external_id}_#{month_name}.csv"
+    public_filepath = "#{public_directory_name}/#{Time.zone.now.to_i}_#{user.external_id}_#{month_name}.csv"
+
+    result = Summary.by_period_for_user_with_downlines user, period_start, period_end
+    usr = result[:user]
+    summary = result[:summary]
+    downlines = result[:downlines]
+
+    CSV.open(filepath, "wb") do |csv|
+      csv << ["NIVEL", "ID", "NOMBRES", "APELLIDOS", "OMEIN VP", "OMEIN VG", "RANGO OMEIN", "PRANA VP", "PRANA VG"]
+
+      self.print_summary csv, usr, summary, downlines, 0
+
+    end
+
+    return {filepath: public_filepath, month: month_name}
+
+  end
+
+
+  def self.print_summary csv, user, summary, downlines, level
+    
+    user_txt = ["#{level}", "#{user[:external_id]}", "#{user[:first_name]}", "#{user[:last_name]}", 
+                "#{summary[:omein_vp]}", "#{summary[:omein_vg]}", "#{summary[:rank]}", "#{summary[:prana_vp]}", "#{summary[:prana_vg]}"]
+  
+    csv << user_txt
+
+    if downlines.count == 0
+      return
+    else
+      downlines.each do |downline|
+        usr = downline[:user]
+        summary = downline[:summary]
+        downlines = downline[:downlines]
+
+        self.print_summary csv, usr, summary, downlines, (level + 1)
+      end
+    end
+  end
   
 end
 
