@@ -232,7 +232,7 @@ class Summary < ApplicationRecord
     public_directory_name = "reports/#{user.external_id}"
     Dir.mkdir(directory_name) unless File.exists?(directory_name)
     I18n.locale = :es
-    month_name = I18n.t Date::MONTHNAMES[period_start.month]
+    month_name = I18n.t Date::MONTHNAMES[period_start.to_datetime.month]
     I18n.locale = :en
   
     filepath = "#{directory_name}/#{Time.zone.now.to_i}_#{user.external_id}_#{month_name}.csv"
