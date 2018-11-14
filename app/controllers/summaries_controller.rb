@@ -41,7 +41,7 @@ class SummariesController < ApiController
 
   def send 
     begin
-      AsynchSummaryJob.perform_later current_user, {period_start: params[:period_start], period_end: params[:period_end]}
+      AsynchSummaryJob.perform_later(current_user, {period_start: params[:period_start], period_end: params[:period_end]})
       render status :ok
     rescue Exception => e
       summary = Summary.new
