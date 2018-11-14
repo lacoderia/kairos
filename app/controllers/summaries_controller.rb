@@ -39,7 +39,7 @@ class SummariesController < ApiController
     end
   end
 
-  def send 
+  def send_by_email
     begin
       AsynchSummaryJob.perform_later(current_user, {period_start: params[:period_start], period_end: params[:period_end]})
       render status :ok
