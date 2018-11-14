@@ -42,7 +42,7 @@ class SummariesController < ApiController
   def send_by_email
     begin
       AsynchSummaryJob.perform_later(current_user, {period_start: params[:period_start], period_end: params[:period_end]})
-      render status :ok
+      render status: :ok
     rescue Exception => e
       summary = Summary.new
       summary.errors.add(:error_sending_summary_for_user, "Existió un error enviando el resumen.")
