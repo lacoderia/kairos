@@ -32,3 +32,9 @@ config/secrets.yml.key
 *.swm
 *.swo
 *.*~
+
+#reports
+*.csv
+*.xls
+*.xlsx
+*.dump
