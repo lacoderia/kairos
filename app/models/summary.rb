@@ -229,14 +229,12 @@ class Summary < ApplicationRecord
   def self.create_summary user, period_start, period_end
 
     directory_name = "public/reports/#{user.external_id}"
-    public_directory_name = "reports/#{user.external_id}"
     Dir.mkdir(directory_name) unless File.exists?(directory_name)
     I18n.locale = :es
     month_name = I18n.t Date::MONTHNAMES[period_start.to_datetime.month]
     I18n.locale = :en
   
     filepath = "#{directory_name}/#{Time.zone.now.to_i}_#{user.external_id}_#{month_name}.csv"
-    public_filepath = "#{public_directory_name}/#{Time.zone.now.to_i}_#{user.external_id}_#{month_name}.csv"
 
     result = Summary.by_period_for_user_with_downlines user, period_start, period_end
     usr = result[:user]
@@ -250,7 +248,7 @@ class Summary < ApplicationRecord
 
     end
 
-    return {filepath: public_filepath, month: month_name}
+    return {filepath: filepath, month: month_name}
 
   end
 

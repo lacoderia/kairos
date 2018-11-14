@@ -8,6 +8,7 @@ Rails.application.routes.draw do
 
   resources :summaries do
     collection do
+      post 'send'
       get 'for_user'
       get 'by_period_with_downlines'
       get 'by_period_and_user_with_downlines_1_level'

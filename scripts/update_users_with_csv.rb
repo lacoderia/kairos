@@ -5,7 +5,7 @@ not_found = 0
 users_found = []
 users_not_found = []
 
-CSV.foreach(File.path("scripts/socios_nuevos_octubre_2018_01.csv"), { :col_sep => ',' }) do |col|
+CSV.foreach(File.path("scripts/socios_nuevos_octubre_2018_03.csv"), { :col_sep => ',' }) do |col|
   omein_id = col[0].to_i
   sponsor_omein_id = col[7].to_i
   placement_omein_id = col[9].to_i

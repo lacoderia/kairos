@@ -12,6 +12,7 @@ class KairosMailer < ActionMailer::Base
     @user = user
     @filepath = data[:filepath]
     @month = data[:month]
+    attachments["#{@user.external_id}_#{@month}.csv"] = File.read(@filepath)
     mail(to: @user.email, subject: "Tu reporte de FuturaNetwork del mes de #{@month}")
   end
 
