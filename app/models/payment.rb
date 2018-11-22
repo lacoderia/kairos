@@ -111,7 +111,7 @@ class Payment < ApplicationRecord
     OmeinCompPlan.calculate_power_starts period_start, period_end
     OmeinCompPlan.calculate_selling_bonus period_start, period_end
 
-    User.update_summaries period_start, period_end
+    User.update_summaries period_start.beginning_of_month, period_start + 1.month
   end
   
 end
