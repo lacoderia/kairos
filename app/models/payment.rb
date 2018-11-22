@@ -90,5 +90,28 @@ class Payment < ApplicationRecord
       return
     end
   end
+
+  def self.calculate_monthly_comissions period_start, period_end
+    if period_start != (period_end - 1.week)
+      raise "Not a valid monthly period"
+    end
+
+    OmeinCompPlan.calculate_royalties period_start, period_end
+    PranaCompPlan.calculate_royalties period_start, period_end
+    
+    User.update_summaries period_start, period_end
+  end
+
+  def self.calculate_weekly_comssions period_start, period_end
+    if period_start != (period_end - 1.week)
+      raise "Not a valid weekly period"
+    end
+ 
+    PranaCompPlan.calculate_quick_starts period_start, period_end
+    OmeinCompPlan.calculate_power_starts period_start, period_end
+    OmeinCompPlan.calculate_selling_bonus period_start, period_end
+
+    User.update_summaries period_start, period_end
+  end
   
 end
