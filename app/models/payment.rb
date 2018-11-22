@@ -91,7 +91,7 @@ class Payment < ApplicationRecord
     end
   end
 
-  def self.calculate_monthly_comissions period_start, period_end
+  def self.calculate_monthly period_start, period_end
     if period_start != (period_end - 1.week)
       raise "Not a valid monthly period"
     end
@@ -102,7 +102,7 @@ class Payment < ApplicationRecord
     User.update_summaries period_start, period_end
   end
 
-  def self.calculate_weekly_comssions period_start, period_end
+  def self.calculate_weekly period_start, period_end
     if period_start != (period_end - 1.week)
       raise "Not a valid weekly period"
     end
