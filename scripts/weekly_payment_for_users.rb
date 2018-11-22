@@ -6,7 +6,7 @@ PERIOD_END = ARGV[1].to_s.in_time_zone
 
 CSV.open("payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ PRANA QS", "PRANA QS IDS", "$ OMEIN PS 25", "OMEIN PS 25 IDS", "$ PS 15", "PS 15 IDS", "$ COMERC 20", "COMERC 20 IDS", "$ COMERC 10", "COMERC 10 IDS", "$ COMERC 4", "COMERC 4 IDS", "$ TOTAL" ]
-  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ?", PERIOD_START, PERIOD_END).order("external_id desc")
+  users = User.joins(:payments).where("payments.term_paid = ?", "#{PERIOD_START} - #{PERIOD_END}").order("external_id desc")
     
   users.uniq.each do |user|
 
