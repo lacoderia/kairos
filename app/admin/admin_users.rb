@@ -1,6 +1,6 @@
 ActiveAdmin.register User, as: "Distribuidores" do
 
-  actions :all, :except => [:show]
+  actions :all, :except => [:show, :destroy]
 
   permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, shipping_addresses_attributes: [:address, :city, :state, :country, :zip]
   
