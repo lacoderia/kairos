@@ -34,6 +34,7 @@ class OmeinCompPlan
   COMISSIONABLE_VALUE = 1107.00
 
   LEVELS_PER_RANK = {
+    active_with_vg: [0, 1, 2],
     ac_with_vg: [0, 1, 2],
     oneks_with_vg: [0, 1, 2, 3],
     threeks_with_vg: [0, 1, 2, 3],
@@ -46,23 +47,39 @@ class OmeinCompPlan
 
   RANKS = ["N/A", "Empresario", "1K", "3K", "7K", "10K", "20K", "30K", "50K", "100K", "200K", "500K"]
   
-  def self.calculate_active_cycles period_start, period_end
+  def self.calculate_active_for_royalties period_start, period_end
 
     users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
 
-    users_with_active_cycle_and_vg = []
+    users_active_for_royalties = []
 
     users.each do |user|
 
       vp = user.omein_get_personal_volume(period_start, period_end) 
       vg = user.omein_get_group_volume(period_start, period_end)
-      Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
       
       if not user.omein_active_for_period period_start, period_end 
+        Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
         next
+      else
+        Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
+        users_active_for_royalties << {user: user, vp: vp, vg: vg}
+        user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
       end
+      
+    end
 
-      placement_downlines = user.placement_downlines 
+    return users_active_for_royalties
+
+  end
+
+  def self.calculate_active_cycles period_start, period_end, users_active_for_royalties
+    
+    users_with_active_cycle_and_vg = []
+
+    users_active_for_royalties.each do |user_with_vg|
+
+      placement_downlines = user_with_vg[:user].placement_downlines 
 
       if placement_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
 
@@ -82,9 +99,7 @@ class OmeinCompPlan
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
           # Active Cycle eligible 
-          Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
-          users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
-          user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
+          users_with_active_cycle_and_vg << {user: user_with_vg[:user], vp: user_with_vg[:vp], vg: user_with_vg[:vg]}
         else
           inactive_downlines.each do |inactive_downline|
             downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, COMPANY_OMEIN
@@ -94,21 +109,20 @@ class OmeinCompPlan
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_ACTIVE_CYCLE
               # Active Cycle eligible
-              Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
-              users_with_active_cycle_and_vg << {user: user, vp: vp, vg: vg}
-              user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
+              users_with_active_cycle_and_vg << {user: user_with_vg[:user], vp: user_with_vg[:vp], vg: user_with_vg[:vg]}
               break          
             end
             
           end
         end
       end
+
     end
-
-    return users_with_active_cycle_and_vg
     
-  end
+    return users_with_active_cycle_and_vg
 
+  end
+ 
   def self.calculate_one_ks period_start, period_end, users_with_active_cycle_and_vg
     
     oneks_with_vg = []
@@ -350,8 +364,14 @@ class OmeinCompPlan
 
     ranks = {}
 
+    #Active Users  
+    users_active_for_royalties = OmeinCompPlan.calculate_active_for_royalties period_start, period_end
+
     #Active Cycle
-    users_with_active_cycle_and_vg = OmeinCompPlan.calculate_active_cycles period_start, period_end
+    users_with_active_cycle_and_vg = OmeinCompPlan.calculate_active_cycles period_start, period_end, users_active_for_royalties
+    #we subtract the calculated AC and above ranks
+    users_active_for_royalties -= users_with_active_cycle_and_vg
+    ranks[:active_with_vg] = users_active_for_royalties
 
     #1ks
     oneks, oneks_with_vg = OmeinCompPlan.calculate_one_ks period_start, period_end, users_with_active_cycle_and_vg
