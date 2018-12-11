@@ -78,7 +78,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
 
   form do |f|
     #Default values
-    f.object.created_at = DateTime.now
+    f.object.created_at = DateTime.now unless f.object.created_at
     f.object.external_id = User.with_max_id.external_id + 1
     
     f.semantic_errors *f.object.errors.keys

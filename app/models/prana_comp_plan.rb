@@ -115,6 +115,10 @@ class PranaCompPlan
 
       Summary.prana_populate user, period_start, period_end, vp, vg
 
+      if not user.prana_commissionable_for_period(period_start, period_end)
+        next
+      end
+
       if user.placement_upline
         
         uplines = User.prana_check_activity_recursive_upline_3_levels_no_compression(user.placement_upline, [],

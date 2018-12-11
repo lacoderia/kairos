@@ -1,8 +1,39 @@
-ActiveAdmin.register Order, as: "Ordenes" do
+ActiveAdmin.register Order, as: "Prana Ordenes" do
 
   actions :all, :except => [:show]
 
-  permit_params :description, :order_number, :user_ids, :created_at, :item_ids
+  permit_params :description, :order_number, :user_ids, :created_at, item_ids: [], items_attributes: [:id]
+
+  controller do
+
+    def scoped_collection
+      Order.joins(:items).where("company = ?", PranaCompPlan::COMPANY_PRANA).distinct
+    end
+
+    def create
+      params[:item_ids] = []
+      items = params[:order][:items_attributes]
+      items.each do |ix, item|
+        params[:item_ids] << item[:id]
+      end
+      params[:order].delete("items_attributes")
+      super
+    end
+
+    def update
+      params[:order][:item_ids] = []
+      items = params[:order][:items_attributes]
+      items.each do |ix, item|
+        if item[:_destroy] == "1"
+          next
+        end
+        params[:order][:item_ids] << item[:id]
+      end
+      params[:order].delete("items_attributes")
+      super
+    end
+
+  end
 
   index title: "Ordenes" do
     column "ID", :id
@@ -27,7 +58,7 @@ ActiveAdmin.register Order, as: "Ordenes" do
   form do |f|
 
     f.semantic_errors *f.object.errors.keys
-    f.object.created_at = DateTime.now
+    f.object.created_at = DateTime.now unless f.object.created_at
 
     f.inputs "Información de la orden" do
 
@@ -50,8 +81,8 @@ ActiveAdmin.register Order, as: "Ordenes" do
           include_blank: false
       end
       
-      f.input :item_ids, label: "Item", as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort,
-        include_blank: false
+      #f.input :item_ids, label: "Item", as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort,
+      #  include_blank: false
 
       #item_collection = Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
       #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
@@ -68,11 +99,12 @@ ActiveAdmin.register Order, as: "Ordenes" do
       #    a.input :external_id, label: "ID Omein", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
       #  end
       #end
-      #f.inputs "Productos" do
-      #  f.has_many :items, new_record: true, allow_destroy: true do |a|
-      #   a.input :item, as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort, include_blank: false
-      #  end
-      #end
+      omein_item_collection = Item.where(company: PranaCompPlan::COMPANY_PRANA).map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      f.inputs "Productos" do
+        f.has_many :items, new_record: true, allow_destroy: true do |a|
+         a.input :id, as: :select, collection: omein_item_collection, include_blank: false
+        end
+      end
       #f.input :user_ids, as: :select, collection: User.all.map {|user| user.external_id}, include_blank: false
       #f.input :item_ids, as: :select, collection: Item.all.map {|item| "#{item.company}-#{item.name}"}.sort, include_blank: false
     end

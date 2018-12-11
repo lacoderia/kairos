@@ -117,6 +117,18 @@ class User < ApplicationRecord
 
   end
 
+  def prana_commissionable_for_period period_start, period_end
+
+    prana_volume = self.prana_get_personal_volume period_start, period_end
+
+    if prana_volume < PranaCompPlan::MIN_VOLUME
+      return false
+    else
+      return true
+    end
+
+  end
+
   def get_personal_volume_detail period_start, period_end, company
     user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
                                                         company, period_start, period_end).order(created_at: :asc).uniq
