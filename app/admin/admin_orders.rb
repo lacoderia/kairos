@@ -2,7 +2,7 @@ ActiveAdmin.register Order, as: "Ordenes" do
 
   actions :all, :except => [:show]
 
-  permit_params :description, :order_number, :user_ids, :item_ids, :created_at
+  permit_params :description, :order_number, :user_ids, :created_at, :item_ids
 
   index title: "Ordenes" do
     column "ID", :id
@@ -13,8 +13,12 @@ ActiveAdmin.register Order, as: "Ordenes" do
       User.find(order.user_ids.first).external_id
     end
     column "Item" do |order|
-      item = Item.find(order.item_ids.first)
-      "#{item.company}-#{item.name}"
+      items = ""
+      order.item_ids.each do |item_id|
+        item = Item.find(item_id)
+        items += "#{item.company}-#{item.name}<br/>"
+      end
+      items.html_safe
     end
     
     actions defaults: true
@@ -48,6 +52,14 @@ ActiveAdmin.register Order, as: "Ordenes" do
       
       f.input :item_ids, label: "Item", as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort,
         include_blank: false
+
+      #item_collection = Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      #f.input :items, as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort, include_blank: false
+      #f.input :item_ids, label: "Productos", as: :check_boxes, collection: item_collection, 
+      #  include_blank: false
       
       #f.input :item, as: :select, collection: Item.all.map {|item| "#{item.company}-#{item.name}"}.sort, include_blank: false
 

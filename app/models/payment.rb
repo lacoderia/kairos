@@ -37,52 +37,84 @@ class Payment < ApplicationRecord
     
   end
 
-  def self.omein_add_selling_bonus_20 user, period_start, period_end, from_users, base_amount
+  def self.omein_add_selling_bonus_20 user, period_start, period_end, from_users, volume_details
 
-    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_20', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_20), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-    
-  end
+    payment_amount = self.get_amount_for_volume_details volume_details, OmeinCompPlan::SELLING_BONUS_20
 
-  def self.omein_add_selling_bonus_10 user, period_start, period_end, from_users, base_amount
-
-    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_10', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_10), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-    
-  end
-
-  def self.omein_add_selling_bonus_4 user, period_start, period_end, from_users, base_amount
-
-    user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_4', amount: (base_amount*OmeinCompPlan::SELLING_BONUS_4), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-    
-  end
-
-  def self.omein_add_power_start_25 user, period_start, period_end, from_users, base_amount
-
-    user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_25', amount: (base_amount*OmeinCompPlan::POWER_START_25), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-
-    # TODO: update attribute to mark user's first omein order 
-    #user.update_attribute(:quick_start_paid, true)
-    
-  end
-
-  def self.omein_add_power_start_15 user, period_start, period_end, from_users, base_amount
-
-    user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_15', amount: (base_amount*OmeinCompPlan::POWER_START_15), term_paid: "#{period_start} - #{period_end}", from_users: from_users)
-    
-  end
-
-  def self.add_payment user, period_start, period_end, from_users, company, level, volume = 0
-
-    payment_type = "#{company}_LEVEL_#{level}"
-
-    #payment amount
-    if company == PranaCompPlan::COMPANY_PRANA
-      payment_amount = eval("PranaCompPlan::LEVEL_#{level}")
-    elsif company == OmeinCompPlan::COMPANY_OMEIN
-
-      units_ordered = volume/100
-      total_comissionable_value = units_ordered*OmeinCompPlan::COMISSIONABLE_VALUE
-      payment_amount = eval("OmeinCompPlan::LEVEL_#{level}")*total_comissionable_value
+    if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_20', amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
     end
+
+  end
+
+  def self.omein_add_selling_bonus_10 user, period_start, period_end, from_users, volume_details
+
+    payment_amount = self.get_amount_for_volume_details volume_details, OmeinCompPlan::SELLING_BONUS_10
+
+    if payment_amount > 0
+      user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_10', amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
+    end
+    
+  end
+
+  def self.omein_add_selling_bonus_4 user, period_start, period_end, from_users, volume_details
+
+    payment_amount = self.get_amount_for_volume_details volume_details, OmeinCompPlan::SELLING_BONUS_4
+
+    if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: 'OMEIN_SELLING_BONUS_4', amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
+    end
+    
+  end
+
+  def self.omein_add_power_start_25 user, period_start, period_end, from_users, volume_details
+    
+    payment_amount = self.get_amount_for_volume_details volume_details, OmeinCompPlan::POWER_START_25
+
+    if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_25', amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
+    end
+    
+  end
+
+  def self.omein_add_power_start_15 user, period_start, period_end, from_users, volume_details
+    
+    payment_amount = self.get_amount_for_volume_details volume_details, OmeinCompPlan::POWER_START_15
+
+    if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: 'OMEIN_POWER_START_15', amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
+    end
+    
+  end
+
+  def self.prana_add_payment user, period_start, period_end, from_users, level, volume 
+
+    payment_type = "PRANA_LEVEL_#{level}"
+
+    units_ordered = volume/200
+    payment_amount = units_ordered*eval("PranaCompPlan::LEVEL_#{level}")
+
+    if payment_amount > 0 
+      user.payments << Payment.create!(payment_type: payment_type, amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    else
+      return
+    end
+  end
+
+  def self.omein_add_payment user, period_start, period_end, from_users, level, volume_details
+
+    payment_type = "OMEIN_LEVEL_#{level}"
+    payment_amount = self.get_amount_for_volume_details volume_details, eval("OmeinCompPlan::LEVEL_#{level}")
 
     if payment_amount > 0 
       user.payments << Payment.create!(payment_type: payment_type, amount: payment_amount, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
@@ -112,6 +144,22 @@ class Payment < ApplicationRecord
     OmeinCompPlan.calculate_selling_bonus period_start, period_end
 
     User.update_summaries period_start.beginning_of_month, period_start + 1.month
+  end
+
+  def self.get_amount_for_volume_details volume_details, base_percentage
+
+    payment_amount = 0
+    volume_details[:items].each do |item|
+
+      item_obj = Item.find(item[:id])
+
+      raise 'Item sin valor comisionable' unless item_obj.commissionable_value 
+      payment_amount += base_percentage*item_obj.commissionable_value
+
+    end
+
+    return payment_amount
+
   end
   
 end

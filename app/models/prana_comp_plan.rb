@@ -8,6 +8,8 @@ class PranaCompPlan
   LEVEL_3 = 200.00
   ACTIVE_DOWNLINES_FOR_QUICK_START = 3
 
+  MIN_VOLUME = 200
+
   
   def self.calculate_quick_starts period_start, period_end, launch_event = false
 
@@ -114,23 +116,24 @@ class PranaCompPlan
       Summary.prana_populate user, period_start, period_end, vp, vg
 
       if user.placement_upline
+        
         uplines = User.prana_check_activity_recursive_upline_3_levels_no_compression(user.placement_upline, [],
                                                                                             period_start, period_end)
 
         puts "pagos del usuario #{user.email}"
 
         if uplines[0] and uplines[0][:eligible]
-          Payment.add_payment uplines[0][:upline], period_start, period_end, [user], COMPANY_PRANA, 1
+          Payment.prana_add_payment uplines[0][:upline], period_start, period_end, [user], 1, vp
           level_1_payments += 1
           puts "pago de nivel 1 al usuario #{uplines[0][:upline].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[1] and uplines[1][:eligible]
-          Payment.add_payment uplines[1][:upline], period_start, period_end, [user], COMPANY_PRANA, 2
+          Payment.prana_add_payment uplines[1][:upline], period_start, period_end, [user], 2, vp
           level_2_payments += 1 
           puts "pago de nivel 2 al usuario #{uplines[1][:upline].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[2] and uplines[2][:eligible]
-          Payment.add_payment uplines[2][:upline], period_start, period_end, [user], COMPANY_PRANA, 3
+          Payment.prana_add_payment uplines[2][:upline], period_start, period_end, [user], 3, vp
           level_3_payments += 1 
           puts "pago de nivel 3 al usuario #{uplines[2][:upline].email} en el periodo #{period_start} - #{period_end}"
         end

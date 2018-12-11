@@ -103,42 +103,29 @@ class User < ApplicationRecord
   #TODO: verify registration_paid in PRANA by checking ODERS with item 'INSCRIPCION' and adding a field in users named registration_paid
   def prana_active_for_period period_start, period_end, verify_min_volume_in_omein = false 
 
-    #Activity in PRANA
-    user_prana_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                        PranaCompPlan::COMPANY_PRANA, period_start, period_end).uniq
+    prana_volume = self.prana_get_personal_volume period_start, period_end
 
-    has_product_orders = Order.has_product_orders user_prana_orders
-
-    if not has_product_orders
+    if prana_volume < PranaCompPlan::MIN_VOLUME
       return false
     end
 
-    if (user_prana_orders.count > 0)
-
-      if verify_min_volume_in_omein
-        return self.omein_active_for_period period_start, period_end, OmeinCompPlan::MAX_VOLUME
-      else 
-        return true
-      end
-
-    else
-      return false      
-    end 
+    if verify_min_volume_in_omein
+      return self.omein_active_for_period period_start, period_end, OmeinCompPlan::MAX_VOLUME
+    else 
+      return true
+    end
 
   end
 
-  def get_personal_volume period_start, period_end, company
+  def get_personal_volume_detail period_start, period_end, company
     user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                        company, period_start, period_end).uniq
+                                                        company, period_start, period_end).order(created_at: :asc).uniq
 
-    volume = 0
-    user_orders.each do |order|
-      order.items.each do |item|
-        volume += item.volume
-      end
-    end
+    return Order.get_volume_detail user_orders
+  end
 
-    return volume
+  def get_personal_volume period_start, period_end, company
+    get_personal_volume_detail(period_start, period_end, company)[:total_volume]    
   end
 
   def omein_get_personal_volume period_start, period_end
@@ -157,31 +144,18 @@ class User < ApplicationRecord
 
     previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start).uniq
 
-    power_start_volume = 0
-
-    if not previous_omein_orders.count > 0
-
+    if previous_omein_orders.count > 0
+      return {items: [], total_volume: 0}
+    else
       current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                       company, period_start, period_end).uniq
-
-
-      if current_omein_orders.count > 0
-  
-        current_omein_orders.first.items.each do |item|
-            
-          power_start_volume += item.volume
-          
-        end
-
-      end
-
+                                                       company, period_start, period_end).order(created_at: :asc).uniq
+      
+      return Order.get_volume_detail [current_omein_orders.first]
     end
-
-    return power_start_volume
 
   end
 
-  def omein_get_comissionable_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
+  def omein_get_commissionable_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     #return self.omein_get_personal_volume period_start, period_end
 
@@ -198,35 +172,15 @@ class User < ApplicationRecord
       #  return self.omein_get_personal_volume period_start, period_end
       #end
       
-      return self.omein_get_personal_volume period_start, period_end
+      return self.get_personal_volume_detail period_start, period_end, company
       
     else
 
       current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
                                                        company, period_start, period_end).uniq
- 
-      if current_omein_orders.count > 1
 
-        comissionable_volume = 0
-        first_order = true
-        
-        current_omein_orders.order(created_at: :asc).each do |omein_order|
-
-          if first_order 
-            first_order = false
-            next
-          end
-          
-          omein_order.items.each do |item|
-            comissionable_volume += item.volume
-          end
-        end
-
-        return comissionable_volume
-
-      else
-        return 0
-      end
+      return Order.get_volume_detail_avoid_first_order current_omein_orders
+       
     end
 
   end

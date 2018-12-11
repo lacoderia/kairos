@@ -18,3 +18,12 @@ Item.create!(company: "OMEIN", name: "200 Puntos", description: "Dos cajas de Ay
 Item.create!(company: "OMEIN", name: "300 Puntos", description: "Tres cajas de Ayni", price: 4380, commissionable_value: 3321, volume: 300)
 Item.create!(company: "OMEIN", name: "400 Puntos", description: "Cuatro cajas de Ayni", price: 5840, commissionable_value: 4428, volume: 400)
 Item.create!(company: "OMEIN", name: "1600 Puntos", description: "16 cajas de Ayni", price: 23360, commissionable_value: 17712, volume: 1600)
+
+Item.create!(company: "OMEIN", name: "REACTIVACION", price: 300, commissionable_value: 0)
+
+Item.create!(company: "PRANA", name: "PROTEINA", price: 600, volume: 50)
+Item.create!(company: "PRANA", name: "CREMA CORPORAL", price: 219, volume: 20)
+Item.create!(company: "PRANA", name: "CREMA DE CARA", price: 420, volume: 40)
+Item.create!(company: "PRANA", name: "SHAMPOO", price: 219, volume: 16)
+Item.create!(company: "PRANA", name: "MONK", price: 398, volume: 35)
+Item.create!(company: "OMEIN", name: "MONK", price: 398, volume: 35, commissionable_value: 308)

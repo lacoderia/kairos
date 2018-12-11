@@ -31,7 +31,8 @@ class OmeinCompPlan
   LEVEL_8 = 0.04
   LEVEL_9 = 0.06
 
-  COMISSIONABLE_VALUE = 1107.00
+  COMMISSIONABLE_VALUE_AYNI = 1107.00
+  COMMISSIONABLE_VALUE_MONK = 308.00
 
   LEVELS_PER_RANK = {
     active_with_vg: [0, 1, 2],
@@ -434,22 +435,58 @@ class OmeinCompPlan
 
     users.each do |user|
 
-      total_pv = user.omein_get_personal_volume period_start.beginning_of_month, period_end
+      total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_end, COMPANY_OMEIN
+      total_pv = total_pv_details[:total_volume]
+      
       if total_pv > MAX_VOLUME
 
-        weekly_pv = user.omein_get_personal_volume period_start, period_end 
+        weekly_pv_details = user.get_personal_volume_detail period_start, period_end, COMPANY_OMEIN 
+        weekly_pv = weekly_pv_details[:total_volume] 
 
         excedent_pv = total_pv - MAX_VOLUME
 
         if excedent_pv < weekly_pv
-          selling_bonus_pv = excedent_pv
-        else
-          selling_bonus_pv = weekly_pv
-        end
+          
+          selling_bonus_detail = {items: [], total_volume: 0}
+          acc_volume = 0
+          total_pv_details[:items].each do |item|
+            
+            if acc_volume >= MAX_VOLUME
+              selling_bonus_detail[:items] << item
+              selling_bonus_detail[:total_volume] += item[:volume] 
+            else
+              if acc_volume == 0
+                if item[:volume] <= MAX_VOLUME
+                  acc_volume += item[:volume]
+                else
+                  #break +200 volume items into small 100 volume items
+                  base_100_item = Item.find_by_volume(100)
+                  excedent_volume = item[:volume] - MAX_VOLUME
+                  acc_volume += MAX_VOLUME
 
-        base_volume = (selling_bonus_pv/100)*COMISSIONABLE_VALUE
+                  (excedent_volume/100).times.each do |x|
+                    selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
+                    selling_bonus_detail[:total_volume] += base_100_item.volume 
+                  end
+                end
+              else
+                #break +200 volume items into small 100 volume items
+                base_100_item = Item.find_by_volume(100)
+                remainder_item_volume = item[:volume] - acc_volume
+                acc_volume += acc_volume
+                (remainder_item_volume/100).times.each do |x|
+                  selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
+                  selling_bonus_detail[:total_volume] += base_100_item.volume 
+                end
+              end
+            end
+          end
+
+        else
+          selling_bonus_detail = weekly_pv_details
+        end
         
-        Payment.omein_add_selling_bonus_20 user, period_start, period_end, [user], base_volume 
+        Payment.omein_add_selling_bonus_20 user, period_start, period_end, [user], selling_bonus_detail 
         base_payments += 1
         puts "pago de 20% al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
 
@@ -457,22 +494,22 @@ class OmeinCompPlan
                                                                                             period_start, period_end)
 
         if uplines[0]
-          Payment.omein_add_selling_bonus_10 uplines[0], period_start, period_end, [user], base_volume 
+          Payment.omein_add_selling_bonus_10 uplines[0], period_start, period_end, [user], selling_bonus_detail 
           level_1_payments += 1
           puts "pago de 10% al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[1]
-          Payment.omein_add_selling_bonus_4 uplines[1], period_start, period_end, [user], base_volume 
+          Payment.omein_add_selling_bonus_4 uplines[1], period_start, period_end, [user], selling_bonus_detail 
           level_2_payments += 1
           puts "pago de 4% al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[2]
-          Payment.omein_add_selling_bonus_4 uplines[2], period_start, period_end, [user], base_volume 
+          Payment.omein_add_selling_bonus_4 uplines[2], period_start, period_end, [user], selling_bonus_detail 
           level_3_payments += 1
           puts "pago de 4% al usuario #{uplines[2].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[3]
-          Payment.omein_add_selling_bonus_4 uplines[3], period_start, period_end, [user], base_volume 
+          Payment.omein_add_selling_bonus_4 uplines[3], period_start, period_end, [user], selling_bonus_detail 
           level_4_payments += 1
           puts "pago de 4% al usuario #{uplines[3].email} en el periodo #{period_start} - #{period_end}"
         end
@@ -497,20 +534,18 @@ class OmeinCompPlan
 
     users.each do |user|
 
-      power_start_volume = user.omein_get_power_start_volume period_start, period_end
+      power_start_volume_detail = user.omein_get_power_start_volume period_start, period_end
 
       uplines = User.omein_check_activity_recursive_upline_2_levels_compression(user.placement_upline, [],
                                                                                             period_start, period_end)
-
-      base_volume = (power_start_volume/100)*COMISSIONABLE_VALUE
       
       if uplines[0]
-        Payment.omein_add_power_start_25 uplines[0], period_start, period_end, [user], base_volume 
+        Payment.omein_add_power_start_25 uplines[0], period_start, period_end, [user], power_start_volume_detail 
         level_1_payments += 1
         puts "pago de 25% al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
       end
       if uplines[1]
-        Payment.omein_add_power_start_15 uplines[1], period_start, period_end, [user], base_volume 
+        Payment.omein_add_power_start_15 uplines[1], period_start, period_end, [user], power_start_volume_detail 
         level_2_payments += 1
         puts "pago de 15% al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
       end
@@ -581,54 +616,54 @@ class OmeinCompPlan
 
       if user.placement_upline
 
-        comissionable_volume = user.omein_get_comissionable_volume period_start, period_end
+        commissionable_detail = user.omein_get_commissionable_volume period_start, period_end
         uplines = User.omein_check_activity_recursive_upline_9_levels_compression(user.placement_upline, [], qualified_ranks,
                                                                                             period_start, period_end)
 
         puts "pagos del usuario #{user.email}"
 
         if uplines[0]
-          Payment.add_payment uplines[0], period_start, period_end, [user], COMPANY_OMEIN, 1, comissionable_volume
+          Payment.omein_add_payment uplines[0], period_start, period_end, [user], 1, commissionable_detail
           level_1_payments += 1
           puts "pago de nivel 1 al usuario #{uplines[0].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[1]
-          Payment.add_payment uplines[1], period_start, period_end, [user], COMPANY_OMEIN, 2, comissionable_volume
+          Payment.omein_add_payment uplines[1], period_start, period_end, [user], 2, commissionable_detail
           level_2_payments += 1
           puts "pago de nivel 2 al usuario #{uplines[1].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[2] 
-          Payment.add_payment uplines[2], period_start, period_end, [user], COMPANY_OMEIN, 3, comissionable_volume
+          Payment.omein_add_payment uplines[2], period_start, period_end, [user], 3, commissionable_detail
           level_3_payments += 1
           puts "pago de nivel 3 al usuario #{uplines[2].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[3]
-          Payment.add_payment uplines[3], period_start, period_end, [user], COMPANY_OMEIN, 4, comissionable_volume
+          Payment.omein_add_payment uplines[3], period_start, period_end, [user], 4, commissionable_detail
           level_4_payments += 1
           puts "pago de nivel 4 al usuario #{uplines[3].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[4]
-          Payment.add_payment uplines[4], period_start, period_end, [user], COMPANY_OMEIN, 5, comissionable_volume
+          Payment.omein_add_payment uplines[4], period_start, period_end, [user], 5, commissionable_detail
           level_5_payments += 1
           puts "pago de nivel 5 al usuario #{uplines[4].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[5]
-          Payment.add_payment uplines[5], period_start, period_end, [user], COMPANY_OMEIN, 6, comissionable_volume
+          Payment.omein_add_payment uplines[5], period_start, period_end, [user], 6, commissionable_detail
           level_6_payments += 1
           puts "pago de nivel 6 al usuario #{uplines[5].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[6]
-          Payment.add_payment uplines[6], period_start, period_end, [user], COMPANY_OMEIN, 7, comissionable_volume
+          Payment.omein_add_payment uplines[6], period_start, period_end, [user], 7, commissionable_detail
           level_7_payments += 1
           puts "pago de nivel 7 al usuario #{uplines[6].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[7]
-          Payment.add_payment uplines[7], period_start, period_end, [user], COMPANY_OMEIN, 8, comissionable_volume
+          Payment.omein_add_payment uplines[7], period_start, period_end, [user], 8, commissionable_detail
           level_8_payments += 1
           puts "pago de nivel 8 al usuario #{uplines[7].email} en el periodo #{period_start} - #{period_end}"
         end
         if uplines[8]
-          Payment.add_payment uplines[8], period_start, period_end, [user], COMPANY_OMEIN, 9, comissionable_volume
+          Payment.omein_add_payment uplines[8], period_start, period_end, [user], 9, comissionable_volume
           level_9_payments += 1
           puts "pago de nivel 9 al usuario #{uplines[8].email} en el periodo #{period_start} - #{period_end}"
         end
