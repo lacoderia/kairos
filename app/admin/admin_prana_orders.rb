@@ -11,10 +11,10 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
     end
 
     def create
-      params[:item_ids] = []
+      params[:order][:item_ids] = []
       items = params[:order][:items_attributes]
       items.each do |ix, item|
-        params[:item_ids] << item[:id]
+        params[:order][:item_ids] << item[:id]
       end
       params[:order].delete("items_attributes")
       super
