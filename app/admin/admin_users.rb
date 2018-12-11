@@ -70,7 +70,9 @@ ActiveAdmin.register User, as: "Distribuidores" do
     column "ID Patrocinio", :sponsor_external_id
     column "ID Colocacion", :placement_external_id
     column "" do |user|
-      link_to "Order", "#{new_admin_ordene_path}?user_id=#{user.id}"
+      links = "#{link_to "Omein Order", "#{new_admin_omein_ordene_path}?user_id=#{user.id}"} "
+      links += "#{link_to "Prana Order", "#{new_admin_prana_ordene_path}?user_id=#{user.id}"}"
+      links.html_safe
     end
     
     actions defaults: true
