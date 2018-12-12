@@ -47,7 +47,7 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
       items = ""
       order.item_ids.each do |item_id|
         item = Item.find(item_id)
-        items += "#{item.company}-#{item.name}<br/>"
+        items += "#{item.name}<br/>"
       end
       items.html_safe
     end
@@ -99,7 +99,7 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
       #    a.input :external_id, label: "ID Omein", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
       #  end
       #end
-      omein_item_collection = Item.where(company: PranaCompPlan::COMPANY_PRANA).map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
+      omein_item_collection = Item.where(company: PranaCompPlan::COMPANY_PRANA).map {|item| ["#{item.name}", item.id]}.sort
       f.inputs "Productos" do
         f.has_many :items, new_record: true, allow_destroy: true do |a|
          a.input :id, as: :select, collection: omein_item_collection, include_blank: false
