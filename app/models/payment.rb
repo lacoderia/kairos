@@ -124,7 +124,7 @@ class Payment < ApplicationRecord
   end
 
   def self.calculate_monthly period_start, period_end
-    if period_start != (period_end - 1.week)
+    if period_start != (period_end - 1.month)
       raise "Not a valid monthly period"
     end
 
