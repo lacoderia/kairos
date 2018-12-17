@@ -1,0 +1,30 @@
+#!/bin/bash
+
+DOW=$(date +%u)
+DOM=$(date +%d)
+YEAR=$(date +%Y)
+MONTH=$(date +%m)
+
+if [ $DOW -eq 3 ]
+then 
+#calculate weekly commissions
+	PERIOD_START=$YEAR-$MONTH-$(expr $DOM - 9)
+	PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
+	weekly_command="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/calculate_comissions.rb '$PERIOD_START' '$PERIOD_END'"
+	eval $weekly_command
+	weekly_reports="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/weekly_payment_for_users.rb '$PERIOD_START' '$PERIOD_END'"
+	eval $weekly_reports
+fi
+
+if [ $DOM -eq 10 ]
+then
+	PERIOD_START=$YEAR-$(expr $MONTH - 1)-01
+	PERIOD_END=$YEAR-$MONTH-01
+	monthly_command="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/calculate_comissions.rb '$PERIOD_START' '$PERIOD_END'"
+	eval $monthly_command
+	omein_reports="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/omein_payment_for_users.rb '$PERIOD_START' '$PERIOD_END'"
+	eval $omein_reports
+	prana_reports="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/prana_payment_for_users.rb '$PERIOD_START' '$PERIOD_END'"
+	eval $prana_reports
+
+fi
