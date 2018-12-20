@@ -30,6 +30,13 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
         params[:order][:item_ids] << item[:id]
       end
       params[:order].delete("items_attributes")
+
+      order = Order.find(params[:id])
+      order.items.destroy_all
+      params[:order][:item_ids].each do |item_id|
+        order.items << Item.find(item_id)    
+      end
+      params[:order].delete("item_ids")
       super
     end
 
