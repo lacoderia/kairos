@@ -119,4 +119,27 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
 
   end
 
+  csv do
+    column "Distribuidor ID" do |order|
+      order.users.first.external_id
+    end
+    column "Descripción" do |order|
+      order.description
+    end
+    column "Fecha creación" do |order|
+      order.created_at
+    end
+    column "Num orden" do |order|
+      order.order_number
+    end
+    column "Item" do |order|
+      items = ""
+      order.item_ids.each do |item_id|
+        item = Item.find(item_id)
+        items += "#{item.name}\n"
+      end
+      items
+    end
+  end
+
 end
