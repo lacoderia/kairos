@@ -5,6 +5,7 @@ class Payment < ApplicationRecord
 
   PAYMENT_TYPES = [
     'PRANA_QUICK_START',
+    'PRANA_DEFERRED_QUICK_START',
     'PRANA_LEVEL_1',
     'PRANA_LEVEL_2',
     'PRANA_LEVEL_3',
@@ -33,6 +34,17 @@ class Payment < ApplicationRecord
     end
 
     user.payments << Payment.create!(payment_type: 'PRANA_QUICK_START', amount: PranaCompPlan::QUICK_START, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
+    user.update_attribute(:quick_start_paid, true)
+    
+  end
+
+  def self.prana_add_deferred_quick_start user, period_start, period_end, from_users
+
+    if user.quick_start_paid
+      raise 'User already has been paid quick start'
+    end
+
+    user.payments << Payment.create!(payment_type: 'PRANA_DEFERRED_QUICK_START', amount: PranaCompPlan::DEFERRED_QUICK_START, term_paid: "#{period_start} - #{period_end}", from_users: from_users)
     user.update_attribute(:quick_start_paid, true)
     
   end

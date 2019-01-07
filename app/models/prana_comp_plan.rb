@@ -3,6 +3,7 @@ class PranaCompPlan
   COMPANY_PRANA = "PRANA"
   
   QUICK_START = 4000.00
+  DEFERRED_QUICK_START = 2000.00
   LEVEL_1 = 200.00
   LEVEL_2 = 600.00
   LEVEL_3 = 200.00
@@ -10,11 +11,10 @@ class PranaCompPlan
 
   MIN_VOLUME = 200
 
-  
   def self.calculate_quick_starts period_start, period_end, launch_event = false
 
     users = User.joins(:orders => :items).where("users.quick_start_paid = ? AND orders.created_at >= ? AND orders.created_at < 
-                                                ? AND items.company = ?", false, period_start.beginning_of_month, period_start + 1.month,
+                                                ? AND items.company = ?", false, period_start - 1.month, period_end,
                                                 COMPANY_PRANA).order("external_id desc").uniq
 
     
@@ -22,60 +22,110 @@ class PranaCompPlan
 
     users.each do |user|
 
-      # discard inactive users or ones that have created_at outside the period it is being paid
-      if (not user.prana_active_for_period period_start, period_end, true) or 
-        (user.created_at.beginning_of_day < period_start and user.created_at.beginning_of_day >= period_end)
-        next
-      end
+      deferred_user = false
 
+      #deferred user
+      if period_end.beginning_of_day > user_deadline
+
+        if (not user.prana_active_for_period period_start.beginning_of_month,  period_start.beginning_of_month + 1.month, true) 
+          next
+        end
+
+        deferred_user = true
+
+      end
+      
+      user_sign_up_in_prana = user.created_at.beginning_of_day 
+      user_deadline = user_sign_up_in_prana.end_of_day + 1.month 
       downlines = user.placement_downlines 
 
       if downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
         active_downlines = []
         inactive_downlines = []
+        not_deferred_downlines = 0 
         
         downlines.each do |downline|
-        
-          # check created_at of downline within the period it is being paid
-          if downline.created_at.beginning_of_day < period_start and downline.created_at.beginning_of_day >= period_end 
-            next
-          end
-          
-          prana_orders_in_period = 0
-          
-          if launch_event
-            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND
-                                                                         orders.created_at < ?", COMPANY_PRANA, period_start,
-                                                                         period_end).uniq.count
+
+          if deferred_user
+
+            if downline.prana_active_for_period period_start.beginning_of_month, period_start.beginning_of_month + 1.month, true
+              active_downlines << downline 
+            else
+              inactive_downlines << downline 
+            end
+
           else
-            user_sign_up_in_prana = user.created_at.beginning_of_day 
-            user_deadline = user_sign_up_in_prana + 1.month + 1.day
-            prana_orders_in_period = downline.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND
-                                                                         orders.created_at < ?", COMPANY_PRANA, user_sign_up_in_prana,
-                                                                         user_deadline).uniq.count
+
+            if downline.prana_active_for_period user_sign_up_in_prana, user_deadline, true
+              active_downlines << downline 
+
+              # flag active downlines that have created_at of downline outside the deadline of the upline 
+              if not (downline.created_at.beginning_of_day < user_sign_up_in_prana or downline.created_at.beginning_of_day >= user_deadline)
+                not_deferred_downlines += 1
+              end
+
+            else
+              inactive_downlines << downline 
+            end
 
           end
-
-          if prana_orders_in_period > 0
-            active_downlines << downline
-          else
-            inactive_downlines << downline
-          end
+         
         end
 
         if active_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
-          Payment.prana_add_quick_start user, period_start, period_end, active_downlines
+
+          if deferred_user
+            Payment.prana_add_deferred_quick_start user, period_start, period_end, active_downlines
+          else
+
+            if not_deferred_downlines >= ACTIVE_DOWNLINES_FOR_QUICK_START
+              Payment.prana_add_quick_start user, period_start, period_end, active_downlines
+            else
+              puts "pago diferido porque uno o más downlines de los downlines son diferidos"
+              Payment.prana_add_deferred_quick_start user, period_start, period_end, active_downlines
+            end
+
+          end
           puts "pago de powerstart activo al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
           quick_start_payments += 1
+
         else
+
           inactive_downlines.each do |inactive_downline|
-            downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, COMPANY_PRANA
+
+            if deferred_user
+              downline = User.check_activity_recursive_downline inactive_downline, period_start.beginning_of_month,
+                period_start.beginning_of_month + 1.month, COMPANY_PRANA
+            else
+              downline = User.check_activity_recursive_downline inactive_downline, user_sign_up_in_prana, user_deadline, COMPANY_PRANA
+            end
+
             if downline
               active_downlines << downline
+
+              if not deferred_user
+                # flag active downlines that have created_at of downline outside the deadline of the upline 
+                if not (downline.created_at.beginning_of_day < user_sign_up_in_prana or downline.created_at.beginning_of_day >= user_deadline)
+                  not_deferred_downlines += 1
+                end
+              end
+
             end
 
             if active_downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
-              Payment.prana_add_quick_start user, period_start, period_end, active_downlines
+
+              if deferred_user
+                Payment.prana_add_deferred_quick_start user, period_start, period_end, active_downlines
+              else
+
+                if not_deferred_downlines >= ACTIVE_DOWNLINES_FOR_QUICK_START
+                  Payment.prana_add_quick_start user, period_start, period_end, active_downlines
+                else
+                  puts "pago diferido porque uno o más downlines de los downlines son diferidos"
+                  Payment.prana_add_deferred_quick_start user, period_start, period_end, active_downlines
+                end
+
+              end
               puts "pago de powerstart activo al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
               quick_start_payments += 1
               break          

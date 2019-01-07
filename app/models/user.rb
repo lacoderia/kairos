@@ -282,7 +282,7 @@ class User < ApplicationRecord
         if company == OmeinCompPlan::COMPANY_OMEIN
           active_in_period = downline.omein_active_for_period period_start, period_end 
         else
-          active_in_period = downline.prana_active_for_period period_start, period_end 
+          active_in_period = downline.prana_active_for_period period_start, period_end, true
         end
 
         if active_in_period

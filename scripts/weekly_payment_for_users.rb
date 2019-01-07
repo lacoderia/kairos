@@ -5,18 +5,20 @@ PERIOD_START = ARGV[0].to_s.in_time_zone
 PERIOD_END = ARGV[1].to_s.in_time_zone
 
 CSV.open("payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
-  csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ PRANA QS", "PRANA QS IDS", "$ OMEIN PS 25", "OMEIN PS 25 IDS", "$ PS 15", "PS 15 IDS", "$ COMERC 20", "COMERC 20 IDS", "$ COMERC 10", "COMERC 10 IDS", "$ COMERC 4", "COMERC 4 IDS", "$ TOTAL" ]
+  csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ PRANA QS", "PRANA QS IDS", "$ PRANA DEF QS", "PRANA DEF QS IDS", "$ OMEIN PS 25", "OMEIN PS 25 IDS", "$ PS 15", "PS 15 IDS", "$ COMERC 20", "COMERC 20 IDS", "$ COMERC 10", "COMERC 10 IDS", "$ COMERC 4", "COMERC 4 IDS", "$ TOTAL" ]
   users = User.joins(:payments).where("payments.term_paid = ?", "#{PERIOD_START} - #{PERIOD_END}").order("external_id desc")
     
   users.uniq.each do |user|
 
     prana_qs = 0
+    prana_def_qs = 0
     ps_25 = 0
     ps_15 = 0
     sb_20 = 0
     sb_10 = 0
     sb_4 = 0
     prana_qs_ids = []
+    prana_def_qs_ids = []
     ps_25_ids = []
     ps_15_ids = []
     sb_20_ids = []
@@ -29,6 +31,11 @@ CSV.open("payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
         prana_qs += payment.amount.round(2) 
         payment.from_users.each do |user|
           prana_qs_ids << user.external_id
+        end
+      when 'PRANA_DEFERRED_QUICK_START'
+        prana_def_qs += payment.amount.round(2) 
+        payment.from_users.each do |user|
+          prana_def_qs_ids << user.external_id
         end
       when 'OMEIN_POWER_START_25'
         ps_25 += payment.amount.round(2) 
@@ -59,16 +66,17 @@ CSV.open("payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
 
     end
 
-    total = prana_qs + ps_25 + ps_15 + sb_20 + sb_10 + sb_4 
+    total = prana_qs + prana_def_qs + ps_25 + ps_15 + sb_20 + sb_10 + sb_4 
         
     prana_qs_ids = prana_qs_ids*","
+    prana_def_qs_ids = prana_def_qs_ids*","
     ps_25_ids = ps_25_ids*"," 
     ps_15_ids = ps_15_ids*"," 
     sb_20_ids = sb_20_ids*"," 
     sb_10_ids = sb_10_ids*"," 
     sb_4_ids = sb_4_ids*","
 
-    user_txt = ["#{user.external_id}", "#{user.first_name}", "#{user.last_name}", "#{user.email}", "#{prana_qs.round(2)}", "#{prana_qs_ids}", "#{ps_25.round(2)}", "#{ps_25_ids}", "#{ps_15.round(2)}", "#{ps_15_ids}", "#{sb_20.round(2)}", "#{sb_20_ids}","#{sb_10.round(2)}", "#{sb_10_ids}", "#{sb_4.round(2)}", "#{sb_4_ids}", "#{total.round(2)}"]
+    user_txt = ["#{user.external_id}", "#{user.first_name}", "#{user.last_name}", "#{user.email}", "#{prana_qs.round(2)}", "#{prana_qs_ids}", "#{prana_def_qs.round(2)}", "#{prana_def_qs_ids}", "#{ps_25.round(2)}", "#{ps_25_ids}", "#{ps_15.round(2)}", "#{ps_15_ids}", "#{sb_20.round(2)}", "#{sb_20_ids}","#{sb_10.round(2)}", "#{sb_10_ids}", "#{sb_4.round(2)}", "#{sb_4_ids}", "#{total.round(2)}"]
     csv << user_txt
   end
 end
