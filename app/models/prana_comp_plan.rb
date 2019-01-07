@@ -23,6 +23,8 @@ class PranaCompPlan
     users.each do |user|
 
       deferred_user = false
+      user_sign_up_in_prana = user.created_at.beginning_of_day 
+      user_deadline = user_sign_up_in_prana.end_of_day + 1.month 
 
       #deferred user
       if period_end.beginning_of_day > user_deadline
@@ -35,8 +37,6 @@ class PranaCompPlan
 
       end
       
-      user_sign_up_in_prana = user.created_at.beginning_of_day 
-      user_deadline = user_sign_up_in_prana.end_of_day + 1.month 
       downlines = user.placement_downlines 
 
       if downlines.count >= ACTIVE_DOWNLINES_FOR_QUICK_START
