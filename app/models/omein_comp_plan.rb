@@ -435,13 +435,23 @@ class OmeinCompPlan
 
     users.each do |user|
 
-      total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_end, COMPANY_OMEIN
-      total_pv = total_pv_details[:total_volume]
+      if period_start.month != period_end.month
+        total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_start.end_of_month, COMPANY_OMEIN
+        total_pv = total_pv_details[:total_volume]
+      else
+        total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_end, COMPANY_OMEIN
+        total_pv = total_pv_details[:total_volume]
+      end
       
       if total_pv > MAX_VOLUME
-
-        weekly_pv_details = user.get_personal_volume_detail period_start, period_end, COMPANY_OMEIN 
-        weekly_pv = weekly_pv_details[:total_volume] 
+      
+        if period_start.month != period_end.month
+          weekly_pv_details = user.get_personal_volume_detail period_start, period_start.end_of_month, COMPANY_OMEIN 
+          weekly_pv = weekly_pv_details[:total_volume] 
+        else
+          weekly_pv_details = user.get_personal_volume_detail period_start, period_end, COMPANY_OMEIN 
+          weekly_pv = weekly_pv_details[:total_volume] 
+        end
 
         excedent_pv = total_pv - MAX_VOLUME
 
