@@ -11,7 +11,7 @@ CSV.open("payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   users.uniq.each do |user|
 
     quick_start = 0
-    dferred_quick_start = 0
+    deferred_quick_start = 0
     level_1 = 0
     level_2 = 0
     level_3 = 0
