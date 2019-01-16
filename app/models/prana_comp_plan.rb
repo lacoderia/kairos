@@ -165,7 +165,7 @@ class PranaCompPlan
 
       Summary.prana_populate user, period_start, period_end, vp, vg
 
-      if not user.prana_commissionable_for_period(period_start, period_end)
+      if vp < PranaCompPlan::MIN_VOLUME
         next
       end
 

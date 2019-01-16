@@ -24,27 +24,27 @@ CSV.open("payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
     user.payments.where("term_paid = ?", "#{PERIOD_START} - #{PERIOD_END}").each do |payment|
       case payment.payment_type
       when 'PRANA_QUICK_START'
-        quick_start += PranaCompPlan::QUICK_START
+        quick_start += payment.amount 
         payment.from_users.each do |user|
           quick_start_ids << user.external_id 
         end
       when 'PRANA_DEFERRED_QUICK_START'
-        dferred_quick_start += PranaCompPlan::DEFERRED_QUICK_START
+        dferred_quick_start += payment.amount
         payment.from_users.each do |user|
           deferred_quick_start_ids << user.external_id 
         end
       when 'PRANA_LEVEL_1'
-        level_1 += PranaCompPlan::LEVEL_1
+        level_1 += payment.amount
         payment.from_users.each do |user|
           level_1_ids << user.external_id
         end
       when 'PRANA_LEVEL_2'
-        level_2 += PranaCompPlan::LEVEL_2
+        level_2 += payment.amount
         payment.from_users.each do |user|
           level_2_ids << user.external_id
         end
       when 'PRANA_LEVEL_3'
-        level_3 += PranaCompPlan::LEVEL_3
+        level_3 += payment.amount
         payment.from_users.each do |user|
           level_3_ids << user.external_id
         end
