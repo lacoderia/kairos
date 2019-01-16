@@ -47,8 +47,11 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
     column "Descripción", :description
     column "Fecha Creación", :created_at
     column "Num Orden", :order_number
-    column "User ID" do |order|
+    column "Futura ID" do |order|
       User.find(order.user_ids.first).external_id
+    end
+    column "Nombre" do |order|
+      "#{User.find(order.user_ids.first).first_name} #{User.find(order.user_ids.first).last_name}"
     end
     column "Item" do |order|
       items = ""
@@ -57,6 +60,14 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
         items += "#{item.name}<br/>"
       end
       items.html_safe
+    end
+    column "Puntos" do |order|
+      volume = 0
+      order.item_ids.each do |item_id|
+        item = Item.find(item_id)
+        volume += item.volume
+      end
+      volume
     end
     
     actions defaults: true
@@ -81,10 +92,14 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
           f.input :user_ids, input_html: { value: params[:user_id]}, as: :hidden
           f.has_many :users, new_record: false do |a|
             a.input :external_id, label: "ID Omein", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
+            a.input :first_name, label: "Nombres", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
+            a.input :last_name, label: "Apellidos", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
           end
         end
       else
-        f.input :user_ids, label: "ID Omein", as: :select, collection: User.all.map {|user| [user.external_id, user.id]}.sort, 
+        f.input :user_ids, label: "ID Omein", as: :select, 
+          collection: User.all.sort_by{|user| user.external_id}
+          .map{|user| ["#{user.external_id} - #{user.first_name} #{user.last_name}", user.id]}, 
           include_blank: false
       end
       
