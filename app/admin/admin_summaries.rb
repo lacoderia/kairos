@@ -26,6 +26,32 @@ ActiveAdmin.register Summary, as: "Volumen Usuario" do
     
   end
 
+  csv do 
 
+    column "Futura ID" do |summary|
+      summary.user.external_id
+    end
+
+    column "Nombre" do |summary|
+      "#{summary.user.first_name} #{summary.user.last_name}"
+    end
+
+    column "Omein VP" do |summary|
+      summary.omein_vp
+    end
+    column "Omein VG" do |summary|
+      summary.omein_vg
+    end
+    column "Prana VP" do |summary|
+      summary.prana_vp
+    end
+    column "Prana VG" do |summary|
+      summary.prana_vg
+    end
+    column "Periodo" do |summary|
+      summary.period_start
+    end
+
+  end
 
 end
