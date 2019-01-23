@@ -2,6 +2,10 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
 
   actions :all, :except => [:show]
 
+  filter :created_at, as: :date_range, label: "Fecha de creación"
+  filter :order_number, label: "Número de orden"
+  filter :users, collection: -> { User.all.map { |user| [user.external_id, user.id] }.sort } 
+
   permit_params :description, :order_number, :user_ids, :created_at, item_ids: [], items_attributes: [:id, :item, :_destroy]
 
   controller do
@@ -135,25 +139,39 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
   end
 
   csv do
-    column "Distribuidor ID" do |order|
-      order.users.first.external_id
+    column "ID" do |order|
+      order.id
     end
     column "Descripción" do |order|
       order.description
     end
-    column "Fecha creación" do |order|
+    column "Fecha Creación" do |order|
       order.created_at
     end
-    column "Num orden" do |order|
+    column "Num Orden" do |order|
       order.order_number
+    end
+    column "Futura ID" do |order|
+      User.find(order.user_ids.first).external_id
+    end
+    column "Nombre" do |order|
+      "#{User.find(order.user_ids.first).first_name} #{User.find(order.user_ids.first).last_name}"
     end
     column "Item" do |order|
       items = ""
       order.item_ids.each do |item_id|
         item = Item.find(item_id)
-        items += "#{item.name}\n"
+        items += "#{item.name}<br/>"
       end
-      items
+      items.html_safe
+    end
+    column "Puntos" do |order|
+      volume = 0
+      order.item_ids.each do |item_id|
+        item = Item.find(item_id)
+        volume += item.volume
+      end
+      volume
     end
   end
 
