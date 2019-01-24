@@ -69,6 +69,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
     column "Creación", :created_at     
     column "ID Patrocinio", :sponsor_external_id
     column "ID Colocacion", :placement_external_id
+    column "ID IUVARE", :iuvare_id
     column "" do |user|
       links = "#{link_to "Omein Order", "#{new_admin_omein_ordene_path}?user_id=#{user.id}"} "
       links += "#{link_to "Prana Order", "#{new_admin_prana_ordene_path}?user_id=#{user.id}"}"
@@ -93,6 +94,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
       f.input :created_at, label: "Creación", as: :datepicker 
       f.input :sponsor_external_id, label: "ID Patrocinio"
       f.input :placement_external_id, label: "ID Colocacion"
+      f.input :iuvare_id, label: "ID IUVARE"
       f.input :phone, label: "Teléfono"
       f.input :phone_alt, label: "Celular"
       f.input :password, label: "Password"
