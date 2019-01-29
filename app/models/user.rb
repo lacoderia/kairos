@@ -363,7 +363,7 @@ class User < ApplicationRecord
       end
 
       if upline.placement_upline
-        return User.omein_check_activity_recursive_upline_2_levels_compression(upline.placement_upline, qualified_uplines, 
+        return User.omein_check_activity_recursive_upline_2_levels_compression(upline.sponsor_upline, qualified_uplines, 
           period_start, period_end)
       else
         return qualified_uplines
