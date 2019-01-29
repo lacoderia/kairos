@@ -500,7 +500,7 @@ class OmeinCompPlan
         base_payments += 1
         puts "pago de 20% al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
 
-        uplines = User.omein_check_activity_recursive_upline_4_levels_compression(user.placement_upline, [],
+        uplines = User.omein_check_activity_recursive_upline_4_levels_compression(user.sponsor_upline, [],
                                                                                             period_start, period_end)
 
         if uplines[0]
@@ -546,7 +546,7 @@ class OmeinCompPlan
 
       power_start_volume_detail = user.omein_get_power_start_volume period_start, period_end
 
-      uplines = User.omein_check_activity_recursive_upline_2_levels_compression(user.placement_upline, [],
+      uplines = User.omein_check_activity_recursive_upline_2_levels_compression(user.sponsor_upline, [],
                                                                                             period_start, period_end)
       
       if uplines[0]
