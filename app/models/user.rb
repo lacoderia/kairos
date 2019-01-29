@@ -340,7 +340,7 @@ class User < ApplicationRecord
       if (upline.omein_active_for_period (period_end - 6.weeks), period_end, 200)
         qualified_uplines << upline
       else
-        if upline.placement_upline
+        if upline.sponsor_upline
           return User.omein_check_activity_recursive_upline_4_levels_compression(upline.sponsor_upline, qualified_uplines, 
             period_start, period_end)
         else
@@ -362,7 +362,7 @@ class User < ApplicationRecord
         qualified_uplines << upline
       end
 
-      if upline.placement_upline
+      if upline.sponsor_upline
         return User.omein_check_activity_recursive_upline_2_levels_compression(upline.sponsor_upline, qualified_uplines, 
           period_start, period_end)
       else
