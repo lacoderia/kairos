@@ -24,7 +24,7 @@ class Summary < ApplicationRecord
 
   def self.omein_update user, period_start, period_end, value_hash
     current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
-    current_summary.update_attributes value_hash
+    current_summary.update_attributes(value_hash)
   end
 
   def self.prana_populate user, period_start, period_end, vp, vg
