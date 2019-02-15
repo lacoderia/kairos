@@ -17,7 +17,7 @@ class Summary < ApplicationRecord
     current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     current_summary.omein_vp = vp
     current_summary.omein_vg = vg
-    current_summary.rank = rank
+    current_summary.rank = rank if rank
     current_summary.save!
     
   end
@@ -52,7 +52,7 @@ class Summary < ApplicationRecord
     #prana
     summary.prana_vg = user.prana_get_group_volume period_start, period_end
     summary.prana_vp = user.prana_get_personal_volume period_start, period_end
-    summary.rank = rank
+#    summary.rank = rank
 
     summary.save!
 

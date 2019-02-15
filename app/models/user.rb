@@ -440,7 +440,7 @@ class User < ApplicationRecord
       prana_vp = user.prana_get_personal_volume(period_start, period_end)
       prana_vg = user.prana_get_group_volume(period_start, period_end)
 
-      Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), omein_vp, omein_vg, "N/A"
+      Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), omein_vp, omein_vg, nil
       Summary.prana_populate user, period_start.beginning_of_month,  (period_start + 1.month), prana_vp, prana_vg
       
     end
