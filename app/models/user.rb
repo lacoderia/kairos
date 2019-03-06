@@ -448,6 +448,24 @@ class User < ApplicationRecord
 
   end
 
+  def recursive_update_volume_with_uplines(period_start, period_end, company)
+    
+    if company == OmeinCompPlan::COMPANY_OMEIN 
+      omein_vp = self.omein_get_personal_volume(period_start, period_end) 
+      omein_vg = self.omein_get_group_volume(period_start, period_end)
+      Summary.omein_populate(self, period_start, period_end, omein_vp, omein_vg, nil)
+    elsif company == PranaCompPlan::COMPANY_PRANA
+      prana_vp = self.prana_get_personal_volume(period_start, period_end) 
+      prana_vg = self.prana_get_group_volume(period_start, period_end)
+      Summary.prana_populate(self, period_start, period_end, prana_vp, prana_vg)
+    end
+
+    if self.placement_upline 
+      self.placement_upline.recursive_update_volume_with_uplines(period_start, period_end, company)
+    end
+
+  end
+
   private
 
   def send_confirmation_email
