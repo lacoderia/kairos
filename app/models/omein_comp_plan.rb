@@ -63,9 +63,10 @@ class OmeinCompPlan
         Summary.omein_populate user, period_start, period_end, vp, vg, "N/A"
         next
       else
-        Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario"
         users_active_for_royalties << {user: user, vp: vp, vg: vg}
-        user.update_attribute(:max_rank, "Empresario") if RANKS.index(user.max_rank) < RANKS.index("Empresario")
+        new_rank = RANKS.index(user.max_rank) < RANKS.index("Empresario") 
+        user.update_attribute(:max_rank, "Empresario") if new_rank 
+        Summary.omein_populate user, period_start, period_end, vp, vg, "Empresario", new_rank
       end
       
     end
@@ -134,8 +135,9 @@ class OmeinCompPlan
       if user_with_vg[:vg] >= ONEK_VOLUME
         oneks_with_vg << user_with_vg
         oneks << user_with_vg[:user]
-        Summary.omein_update user_with_vg[:user], period_start, period_end, {rank: "1K"} 
-        user_with_vg[:user].update_attribute(:max_rank, "1K") if RANKS.index(user_with_vg[:user].max_rank) < RANKS.index("1K")
+        new_rank = RANKS.index(user.max_rank) < RANKS.index("1K") 
+        Summary.omein_update user_with_vg[:user], period_start, period_end, {rank: "1K", new_rank: new_rank}
+        user_with_vg[:user].update_attribute(:max_rank, "1K") if new_rank
       end
       
     end
@@ -167,8 +169,9 @@ class OmeinCompPlan
         if eligible_1ks >= 2
           threeks_with_vg << onek_with_vg
           threeks << onek_with_vg[:user]
-          Summary.omein_update onek_with_vg[:user], period_start, period_end, {rank: "3K"} 
-          onek_with_vg[:user].update_attribute(:max_rank, "3K") if RANKS.index(onek_with_vg[:user].max_rank) < RANKS.index("3K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("3K") 
+          Summary.omein_update onek_with_vg[:user], period_start, period_end, {rank: "3K", new_rank: new_rank} 
+          onek_with_vg[:user].update_attribute(:max_rank, "3K") if new_rank 
         end
 
       end
@@ -200,8 +203,9 @@ class OmeinCompPlan
         
         if eligible_3ks >= 2
           sevenks_with_vg << threek_with_vg
-          Summary.omein_update threek_with_vg[:user], period_start, period_end, {rank: "7K"} 
-          threek_with_vg[:user].update_attribute(:max_rank, "7K") if RANKS.index(threek_with_vg[:user].max_rank) < RANKS.index("7K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("7K") 
+          Summary.omein_update threek_with_vg[:user], period_start, period_end, {rank: "7K", new_rank: new_rank} 
+          threek_with_vg[:user].update_attribute(:max_rank, "7K") if new_rank 
         end
 
       end
@@ -238,8 +242,9 @@ class OmeinCompPlan
         
         if eligible_3ks >= 3
           tenks_with_vg << sevenk_with_vg
-          Summary.omein_update sevenk_with_vg[:user], period_start, period_end, {rank: "10K"} 
-          sevenk_with_vg[:user].update_attribute(:max_rank, "10K") if RANKS.index(sevenk_with_vg[:user].max_rank) < RANKS.index("10K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("10K") 
+          Summary.omein_update sevenk_with_vg[:user], period_start, period_end, {rank: "10K", new_rank: new_rank} 
+          sevenk_with_vg[:user].update_attribute(:max_rank, "10K") if new_rank 
         end
 
       end
@@ -275,8 +280,9 @@ class OmeinCompPlan
         
         if eligible_3ks >= 5
           twentyks_with_vg << tenk_with_vg
-          Summary.omein_update tenk_with_vg[:user], period_start, period_end, {rank: "20K"} 
-          tenk_with_vg[:user].update_attribute(:max_rank, "20K") if RANKS.index(tenk_with_vg[:user].max_rank) < RANKS.index("20K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("20K") 
+          Summary.omein_update tenk_with_vg[:user], period_start, period_end, {rank: "20K", new_rank: new_rank} 
+          tenk_with_vg[:user].update_attribute(:max_rank, "20K") if new_rank 
         end
 
       end
@@ -312,8 +318,9 @@ class OmeinCompPlan
         
         if eligible_3ks >= 7
           thirtyks_with_vg << twentyk_with_vg
-          Summary.omein_update twentyk_with_vg[:user], period_start, period_end, {rank: "30K"} 
-          twentyk_with_vg[:user].update_attribute(:max_rank, "30K") if RANKS.index(twentyk_with_vg[:user].max_rank) < RANKS.index("30K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("30K") 
+          Summary.omein_update twentyk_with_vg[:user], period_start, period_end, {rank: "30K", new_rank: new_rank} 
+          twentyk_with_vg[:user].update_attribute(:max_rank, "30K") if new_rank 
         end
 
       end
@@ -349,8 +356,9 @@ class OmeinCompPlan
         
         if eligible_3ks >= 10
           fiftyks_with_vg << thirtyk_with_vg
-          Summary.omein_update thirtyk_with_vg[:user], period_start, period_end, {rank: "50K"} 
-          thirtyk_with_vg[:user].update_attribute(:max_rank, "50K") if RANKS.index(thirtyk_with_vg[:user].max_rank) < RANKS.index("50K")
+          new_rank = RANKS.index(user.max_rank) < RANKS.index("50K") 
+          Summary.omein_update thirtyk_with_vg[:user], period_start, period_end, {rank: "50K", new_rank: new_rank} 
+          thirtyk_with_vg[:user].update_attribute(:max_rank, "50K") if new_rank 
         end
 
       end

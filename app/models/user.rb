@@ -55,8 +55,8 @@ class User < ApplicationRecord
               false
             else
               invitations.first.update_attribute("used", true)
-              #TODO: Check if needed in production
-              self.send_confirmation_instructions
+              #REMOVED by after create callback
+              #self.send_confirmation_instructions
               true
             end
           else
@@ -65,7 +65,8 @@ class User < ApplicationRecord
           end
         end
       else
-        self.send_confirmation_instructions
+        #REMOVED by after create callback
+        #self.send_confirmation_instructions
         true
       end
     else

@@ -12,12 +12,13 @@ class Summary < ApplicationRecord
   end
 
   #user_id, period_start, period_end, omein_vg, omein_vp, prana_vg, prana_vp, rank
-  def self.omein_populate user, period_start, period_end, vp, vg, rank
+  def self.omein_populate user, period_start, period_end, vp, vg, rank, new_rank = false
 
     current_summary = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     current_summary.omein_vp = vp
     current_summary.omein_vg = vg
     current_summary.rank = rank if rank
+    current_summary.new_rank = new_rank
     current_summary.save!
     
   end
@@ -68,7 +69,7 @@ class Summary < ApplicationRecord
                     {omein_vp: summary_for_period.omein_vp, omein_vg: summary_for_period.omein_vg, 
                       prana_vp: summary_for_period.prana_vp, prana_vg: summary_for_period.prana_vg, 
                       rank: summary_for_period.rank, period_start: summary_for_period.period_start, 
-                      period_end: summary_for_period.period_end}} 
+                      period_end: summary_for_period.period_end, new_rank: summary_for_period.new_rank}} 
 
     if downlines.count == 0
 
@@ -91,7 +92,7 @@ class Summary < ApplicationRecord
                           {omein_vp: downline_summary_for_period.omein_vp, omein_vg: downline_summary_for_period.omein_vg, 
                           prana_vp: downline_summary_for_period.prana_vp, prana_vg: downline_summary_for_period.prana_vg, 
                           rank: downline_summary_for_period.rank, period_start: downline_summary_for_period.period_start, 
-                          period_end: downline_summary_for_period.period_end},
+                          period_end: downline_summary_for_period.period_end, new_rank: summary_for_period.new_rank},
                         downlines: []} 
 
         downlines_with_summary << downline_data
@@ -115,7 +116,7 @@ class Summary < ApplicationRecord
                     {omein_vp: summary_for_period.omein_vp, omein_vg: summary_for_period.omein_vg, 
                       prana_vp: summary_for_period.prana_vp, prana_vg: summary_for_period.prana_vg, 
                       rank: summary_for_period.rank, period_start: summary_for_period.period_start, 
-                      period_end: summary_for_period.period_end}} 
+                      period_end: summary_for_period.period_end, new_rank: summary_for_period.new_rank}} 
 
     if downlines.count == 0
 
@@ -242,7 +243,7 @@ class Summary < ApplicationRecord
     downlines = result[:downlines]
 
     CSV.open(filepath, "wb") do |csv|
-      csv << ["NIVEL", "ID", "NOMBRES", "APELLIDOS", "OMEIN VP", "OMEIN VG", "RANGO OMEIN", "PRANA VP", "PRANA VG"]
+      csv << ["NIVEL", "ID", "NOMBRES", "APELLIDOS", "OMEIN VP", "OMEIN VG", "RANGO OMEIN", "RANGO NUEVO", "PRANA VP", "PRANA VG"]
 
       self.print_summary csv, usr, summary, downlines, 0
 
@@ -255,8 +256,9 @@ class Summary < ApplicationRecord
 
   def self.print_summary csv, user, summary, downlines, level
     
+    new_rank = summary[:new_rank] ? "*" : ""
     user_txt = ["#{level}", "#{user[:external_id]}", "#{user[:first_name]}", "#{user[:last_name]}", 
-                "#{summary[:omein_vp]}", "#{summary[:omein_vg]}", "#{summary[:rank]}", "#{summary[:prana_vp]}", "#{summary[:prana_vg]}"]
+                "#{summary[:omein_vp]}", "#{summary[:omein_vg]}", "#{summary[:rank]}", "#{new_rank}", "#{summary[:prana_vp]}", "#{summary[:prana_vg]}"]
   
     csv << user_txt
 

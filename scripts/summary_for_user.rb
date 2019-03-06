@@ -9,7 +9,7 @@ def fetch_summary user, period_start, period_end
   downlines = result[:downlines]
 
   CSV.open("summary_for_user.csv", "wb") do |csv|
-    csv << ["NIVEL", "ID", "NOMBRES", "APELLIDOS", "OMEIN VP", "OMEIN VG", "RANGO OMEIN", "PRANA VP", "PRANA VG"]
+    csv << ["NIVEL", "ID", "NOMBRES", "APELLIDOS", "OMEIN VP", "OMEIN VG", "RANGO OMEIN", "RANGO NUEVO", "PRANA VP", "PRANA VG"]
 
     print_summary csv, usr, summary, downlines, 0
 
@@ -20,7 +20,8 @@ end
 
 def print_summary csv, user, summary, downlines, level
     
-  user_txt = ["#{level}", "#{user[:external_id]}", "#{user[:first_name]}", "#{user[:last_name]}", "#{summary[:omein_vp]}", "#{summary[:omein_vg]}", "#{summary[:rank]}", "#{summary[:prana_vp]}", "#{summary[:prana_vg]}"]
+  new_rank = summary[:new_rank] ? "*" : ""
+  user_txt = ["#{level}", "#{user[:external_id]}", "#{user[:first_name]}", "#{user[:last_name]}", "#{summary[:omein_vp]}", "#{summary[:omein_vg]}", "#{summary[:rank]}", "#{new_rank}", "#{summary[:prana_vp]}", "#{summary[:prana_vg]}"]
   
   csv << user_txt
 

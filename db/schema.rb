@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181004232355) do
+ActiveRecord::Schema.define(version: 20190305221906) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -171,6 +171,7 @@ ActiveRecord::Schema.define(version: 20181004232355) do
     t.integer "prana_vg", default: 0
     t.integer "prana_vp", default: 0
     t.string "rank", default: "N/A"
+    t.boolean "new_rank", default: false
     t.index ["user_id", "period_start", "period_end"], name: "index_summaries_on_user_id_and_period_start_and_period_end", unique: true
     t.index ["user_id"], name: "index_summaries_on_user_id"
   end
