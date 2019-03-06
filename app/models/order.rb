@@ -56,6 +56,15 @@ class Order < ApplicationRecord
 
   end
 
+  def destroy
+    user = self.users.first
+    company = self.items.first.company
+    period_start = self.created_at.beginning_of_month.strftime("%Y-%m-%d")
+    period_end = (self.created_at.beginning_of_month + 1.month).strftime("%Y-%m-%d")
+    super
+    UpdateVolumeJob.perform_later(user, {period_start: period_start, period_end: period_end, company: company}) 
+  end
+  
   private
 
   def update_summary_with_uplines
