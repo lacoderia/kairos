@@ -461,7 +461,8 @@ class User < ApplicationRecord
     end
 
     if self.placement_upline 
-      self.placement_upline.recursive_update_volume_with_uplines(period_start, period_end, company)
+      UpdateVolumeJob.perform_later(self.placement_upline, {period_start: period_start.strftime("%Y-%m-%d"),
+                                           period_end: period_end.strftime("%Y-%m-%d"), company: company}) 
     end
 
   end
