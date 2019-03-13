@@ -33,7 +33,7 @@ class Order < ApplicationRecord
       total_volume = 0
       first_order = true
       
-      orders_with_items.order(created_at: :asc).each do |omein_order|
+      orders_with_items.sort_by{|order| order.created_at}.each do |omein_order|
 
         if first_order 
           first_order = false
