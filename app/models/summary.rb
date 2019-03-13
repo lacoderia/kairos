@@ -18,7 +18,7 @@ class Summary < ApplicationRecord
     current_summary.omein_vp = vp
     current_summary.omein_vg = vg
     current_summary.rank = rank if rank
-    current_summary.new_rank = new_rank
+    current_summary.new_rank = new_rank if new_rank
     current_summary.save!
     
   end
