@@ -8,7 +8,13 @@ MONTH=$(date +%m)
 if [ $DOW -eq 3 ]
 then 
 #calculate weekly commissions
-	PERIOD_START=$YEAR-$MONTH-$(expr $DOM - 9)
+        if [ $(expr $DOM - 9) -lt 0 ]
+        then
+          DOMPM=$(date -d "1/1 + 1 month - 1 day" "+%d")
+          PERIOD_START=$YEAR-$(expr $MONTH - 1)-$(expr $DOMPM + $DOM - 9)
+        else
+          PERIOD_START=$YEAR-$MONTH-$(expr $DOM - 9)
+        fi
 	PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
 	weekly_command="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/calculate_comissions.rb '$PERIOD_START' '$PERIOD_END'"
 	eval $weekly_command
