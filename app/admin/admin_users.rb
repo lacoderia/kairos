@@ -2,7 +2,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
 
   actions :all, :except => [:show, :destroy]
 
-  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, shipping_addresses_attributes: [:address, :city, :state, :country, :zip]
+  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, :beneficiary_name, :beneficiary_dob, :beneficiary_relationship, :beneficiary_phone_number, shipping_addresses_attributes: [:address, :city, :state, :country, :zip] 
   
   filter :first_name, as: :string, label: "Nombre"
   filter :last_name, as: :string, label: "Apellido"
@@ -98,6 +98,10 @@ ActiveAdmin.register User, as: "Distribuidores" do
       f.input :phone, label: "Teléfono"
       f.input :phone_alt, label: "Celular"
       f.input :password, label: "Password"
+      f.input :beneficiary_name, label: "Beneficiario - nombre"
+      f.input :beneficiary_dob, label: "Beneficiario - nacimiento", start_year: 1930, end_year: Time.now.year
+      f.input :beneficiary_relationship, label: "Beneficiario - parentesco"
+      f.input :beneficiary_phone_number, label: "Beneficiario - teléfono"
       f.inputs "Direcciones" do
           f.has_many :shipping_addresses, allow_destroy: true, new_record: true do |a|
             a.input :address, label: "Dirección"

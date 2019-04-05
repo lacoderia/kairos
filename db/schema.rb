@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190305221906) do
+ActiveRecord::Schema.define(version: 20190405215421) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -212,6 +212,10 @@ ActiveRecord::Schema.define(version: 20190305221906) do
     t.boolean "quick_start_paid", default: false
     t.string "phone_alt"
     t.string "max_rank", default: "N/A"
+    t.string "beneficiary_name"
+    t.date "beneficiary_dob"
+    t.string "beneficiary_relationship"
+    t.string "beneficiary_phone_number"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["external_id"], name: "index_users_on_external_id", unique: true
