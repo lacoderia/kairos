@@ -20,7 +20,17 @@ Rails.application.routes.draw do
       get 'by_user'
     end
   end
-  
+
+  resources :cards do
+    collection do
+      post 'create'
+      post 'delete'
+      post 'set_primary'
+      get 'all'
+      get 'get_device_session_id'
+    end
+  end
+
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self) rescue ActiveAdmin::DatabaseHitDuringLoad
 

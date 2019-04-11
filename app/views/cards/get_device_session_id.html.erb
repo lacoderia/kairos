@@ -1,0 +1,37 @@
+<html>
+<head>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script type="text/javascript" src="https://openpay.s3.amazonaws.com/openpay.v1.min.js"></script>
+  <script type='text/javascript' src="https://openpay.s3.amazonaws.com/openpay-data.v1.min.js"></script>
+  <script type="text/javascript">
+  $(document).ready(function() {
+      OpenPay.setSandboxMode(true);
+      OpenPay.setId('<%= Rails.application.secrets.omein_openpay_merchant_id %>');
+      OpenPay.setApiKey('<%= Rails.application.secrets.omein_openpay_public_key %>');
+      var deviceSessionId = OpenPay.deviceData.setup();
+      $('#device_session_id').html(deviceSessionId);
+
+      OpenPay.token.create({
+        "card_number":"4111111111111111",
+        "holder_name":"Juan Perez Ramirez",
+        "expiration_year":"20",
+        "expiration_month":"12",
+        "cvv2":"110",
+        "address":{
+           "city":"Querétaro",
+           "line3":"Queretaro",
+           "postal_code":"76900",
+           "line1":"Av 5 de Febrero",
+           "line2":"Roble 207",
+           "state":"Queretaro",
+           "country_code":"MX"
+        }
+        }, function(response){$('#card_token').html(response.data.id);}, function(){});
+  });
+  </script>
+</head>
+<body>
+  <div id="device_session_id"></div>
+  <div id="card_token"></div>
+</body>
+</html>

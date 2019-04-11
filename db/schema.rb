@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190405215421) do
+ActiveRecord::Schema.define(version: 20190411214308) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -44,6 +44,23 @@ ActiveRecord::Schema.define(version: 20190405215421) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
+  end
+
+  create_table "cards", force: :cascade do |t|
+    t.string "openpay_id"
+    t.string "alias"
+    t.boolean "active"
+    t.boolean "is_bank_account", default: false
+    t.bigint "user_id"
+    t.boolean "primary", default: false
+    t.string "holder_name"
+    t.string "card_number"
+    t.string "expiration"
+    t.string "brand"
+    t.string "company"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_cards_on_user_id"
   end
 
   create_table "delayed_jobs", force: :cascade do |t|
@@ -216,6 +233,8 @@ ActiveRecord::Schema.define(version: 20190405215421) do
     t.date "beneficiary_dob"
     t.string "beneficiary_relationship"
     t.string "beneficiary_phone_number"
+    t.string "prana_openpay_id"
+    t.string "omein_openpay_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["external_id"], name: "index_users_on_external_id", unique: true
@@ -223,6 +242,7 @@ ActiveRecord::Schema.define(version: 20190405215421) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
+  add_foreign_key "cards", "users"
   add_foreign_key "emails", "users"
   add_foreign_key "invitations", "users"
   add_foreign_key "summaries", "users"

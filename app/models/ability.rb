@@ -10,6 +10,7 @@ class Ability
     can [:create, :update], :password
     can [:create, :get, :destroy], :session
     can [:by_external_id, :confirm], User
+    can :get_device_session_id, Card    
 
     if user.instance_of? User
 
@@ -25,6 +26,7 @@ class Ability
         end
       end
       can [:get_all_for_user], ShippingAddress, users: [user]   
+      can :manage, Card, user_id: user.id      
     end
 
   end

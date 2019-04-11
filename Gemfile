@@ -13,6 +13,7 @@ gem 'rack-cors', :require => 'rack/cors'
 gem 'activeadmin', github: 'activeadmin'
 gem "nokogiri"
 gem "paperclip"
+gem 'openpay'
 gem 'active_model_serializers'
 gem 'rack-test', require: 'rack/test'
 gem 'delayed_job_active_record'
@@ -21,6 +22,7 @@ gem 'inherited_resources', github: 'activeadmin/inherited_resources'
 gem 'ransack',    github: 'activerecord-hackery/ransack'
 gem 'formtastic', github: 'justinfrench/formtastic'
 gem 'draper',              '> 3.x'
+gem 'rest-client', '~> 1.6.9'
 
 gem 'loofah', '~> 2.2.1'
 
@@ -58,6 +60,9 @@ group :development, :test do
   gem 'byebug', platform: :mri
   # To reload UI changes
   gem 'guard-livereload'
+  # Adds support for Capybara system testing and selenium driver
+  gem 'capybara', '~> 2.13'
+  gem 'selenium-webdriver'
 end
 
 group :development do
@@ -75,7 +80,7 @@ group :test do
   gem 'rspec-rails', '~> 3.7'
   gem 'rspec-activejob'
   # Functional testing
-  gem 'capybara'
+#  gem 'capybara'
   # Testing factories
   gem "factory_bot_rails"
   # Testing coverage

@@ -13,6 +13,7 @@ class User < ApplicationRecord
   has_many :summaries
   has_many :emails
   has_many :invitations
+  has_many :cards
   has_and_belongs_to_many :contributed_payments, class_name: 'Payment', join_table: 'from_users_payments', foreign_key: 'from_user_id'
 
   after_create :send_confirmation_email
@@ -26,6 +27,16 @@ class User < ApplicationRecord
   
   def role?(role)
     return !!self.roles.find_by_name(role)
+  end
+
+  def get_openpay_id(company) 
+    
+    if not self.send("#{company.downcase}_openpay_id")
+      payment_api = OpenpayHelper.new(company)
+      result = payment_api.create_user self
+      self.update_attribute("#{company.downcase}_openpay_id", result)
+    end
+    self.method("#{company.downcase}_openpay_id").call
   end
 
   def self.confirm_by_token confirmation_token
