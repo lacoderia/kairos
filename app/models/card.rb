@@ -61,7 +61,8 @@ class Card < ApplicationRecord
 
   def self.validate_company company
     company.upcase!
-    if company == OmeinCompPlan::COMPANY_OMEIN || company== PranaCompPlan::COMPANY_PRANA
+
+    if [OmeinCompPlan::COMPANY_OMEIN, PranaCompPlan::COMPANY_PRANA].include?(company)
       return company  
     else
       raise 'Invalid company name'

@@ -6,8 +6,8 @@
   <script type="text/javascript">
   $(document).ready(function() {
       OpenPay.setSandboxMode(true);
-      OpenPay.setId('<%= Rails.application.secrets.omein_openpay_merchant_id %>');
-      OpenPay.setApiKey('<%= Rails.application.secrets.omein_openpay_public_key %>');
+      OpenPay.setId('<%= Rails.application.secrets.prana_openpay_merchant_id %>');
+      OpenPay.setApiKey('<%= Rails.application.secrets.prana_openpay_public_key %>');
       var deviceSessionId = OpenPay.deviceData.setup();
       $('#device_session_id').html(deviceSessionId);
 

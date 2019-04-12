@@ -26,7 +26,7 @@ feature 'CardsController' do
       set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
 
       #CREATE
-      create_card_request = {token: token, device_session_id: device_session_id, country: "MX", company: "omein"} 
+      create_card_request = {token: token, device_session_id: device_session_id, country: "MX", company: "prana"} 
       
       with_rack_test_driver do
         page.driver.post cards_path, create_card_request 
@@ -35,12 +35,12 @@ feature 'CardsController' do
       response = JSON.parse(page.body)
       expect(response["card"]["openpay_id"]).to eq token
       expect(response["card"]["primary"]).to eq true
-      expect(response["card"]["company"]).to eq "OMEIN"
+      expect(response["card"]["company"]).to eq "PRANA"
 
       card_id = response["card"]["id"]      
 
       #DESTROY
-      destroy_card_request = {id: card_id, company: "OMEIN"}
+      destroy_card_request = {id: card_id, company: "PRANA"}
       with_rack_test_driver do
         page.driver.post delete_cards_path, destroy_card_request 
       end
@@ -66,7 +66,7 @@ feature 'CardsController' do
       Capybara.use_default_driver
 
       #CREATE 2nd CARD
-      create_card_request = {token: token, device_session_id: device_session_id, country: "US", company: "OMEIN"} 
+      create_card_request = {token: token, device_session_id: device_session_id, country: "US", company: "PRANA"} 
       
       with_rack_test_driver do
         page.driver.post cards_path, create_card_request 
@@ -78,7 +78,7 @@ feature 'CardsController' do
       card2_id = response["card"]["id"]
       
       #SET PRIMARY
-      set_primary_card_request = {id: card2_id, company: "OMEIN"} 
+      set_primary_card_request = {id: card2_id, company: "PRANA"} 
       
       with_rack_test_driver do
         page.driver.post set_primary_cards_path, set_primary_card_request 
@@ -89,7 +89,7 @@ feature 'CardsController' do
       expect(response["card"]["primary"]).to eq true
 
       #GET ALL CARDS
-      visit "#{all_cards_path}?company=omein"
+      visit "#{all_cards_path}?company=prana"
       
       response = JSON.parse(page.body)
       expect(response["cards"].count).to eq 2
@@ -97,7 +97,7 @@ feature 'CardsController' do
       expect(response["cards"][1]["id"]).to eq card2_id
 
       #DESTROY
-      destroy_card_request = {id: card2_id, company: "omein"}
+      destroy_card_request = {id: card2_id, company: "prana"}
       with_rack_test_driver do
         page.driver.post delete_cards_path, destroy_card_request 
       end
