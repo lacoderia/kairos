@@ -33,7 +33,6 @@ feature 'CardsController' do
       end
       
       response = JSON.parse(page.body)
-      byebug
       expect(response["card"]["openpay_id"]).to eq token
       expect(response["card"]["primary"]).to eq true
       expect(response["card"]["company"]).to eq "PRANA"
