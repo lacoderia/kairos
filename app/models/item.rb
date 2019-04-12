@@ -3,4 +3,5 @@ class Item < ApplicationRecord
   mount_uploader :image, ItemUploader  
 
   scope :by_company, -> (company){where(company: company)}
+  scope :active, ->{where(active: true)}
 end

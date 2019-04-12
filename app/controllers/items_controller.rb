@@ -6,7 +6,7 @@ class ItemsController < ApiController
   def by_company 
     begin
       company = OpenpayHelper.validate_company(params[:company])
-      @items = Item.by_company(company)
+      @items = Item.active.by_company(company)
       render json: @items
     rescue Exception => e
       @item = Item.new
