@@ -17,7 +17,9 @@ class Ability
       can :manage, User, id: user.id
       #TODO: check that a user can get summaries only for downlines, not for uplines
       can :manage, Summary
+      can :by_company, Item
       can :manage, Invitation, user_id: user.id
+      can :manage, Card, user_id: user.id      
       can [:create, :update, :destroy], ShippingAddress, user.shipping_addresses do |shipping_address|
         if shipping_address.id
           shipping_address.users.first.id == user.id
@@ -26,7 +28,6 @@ class Ability
         end
       end
       can [:get_all_for_user], ShippingAddress, users: [user]   
-      can :manage, Card, user_id: user.id      
     end
 
   end

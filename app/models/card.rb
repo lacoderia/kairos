@@ -4,9 +4,9 @@ class Card < ApplicationRecord
   scope :prana, -> {where(company: 'PRANA').order(id: :asc)} 
   scope :omein, -> {where(company: 'OMEIN').order(id: :asc)}
 
-  def self.create_for_user user, token, device_session, country, company
+  def self.create_for_user user, token, device_session, company
 
-    company = self.validate_company(company)
+    company = OpenpayHelper.validate_company(company)
     payment_api = OpenpayHelper.new(company)
     user_openpay_id = user.get_openpay_id(company)
 
@@ -26,7 +26,7 @@ class Card < ApplicationRecord
 
   def self.delete_for_user user, card_id, company
 
-    company = self.validate_company(company)
+    company = OpenpayHelper.validate_company(company)
     if user.cards.method(company.downcase).call.size == 1
       raise "Necesitas tener al menos una tarjeta"
     end
@@ -47,7 +47,7 @@ class Card < ApplicationRecord
   end
 
   def self.set_primary_for_user user, card_id, company
-    company = self.validate_company(company)
+    company = OpenpayHelper.validate_company(company)
     user_card = Card.find(card_id)
     Card.where("user_id = ?", user.id).method(company.downcase).call.update_all(primary: false)
     user_card.update_attribute(:primary, true)
@@ -55,18 +55,9 @@ class Card < ApplicationRecord
   end
 
   def self.get_all_for_user user, company
-    company = self.validate_company(company)
+    company = OpenpayHelper.validate_company(company)
     return user.cards.method(company.downcase).call
   end
-
-  def self.validate_company company
-    company.upcase!
-
-    if [OmeinCompPlan::COMPANY_OMEIN, PranaCompPlan::COMPANY_PRANA].include?(company)
-      return company  
-    else
-      raise 'Invalid company name'
-    end
-  end
+ 
 end
 

@@ -262,5 +262,15 @@ class OpenpayHelper
     end
   end
 
+  def self.validate_company company
+    company.upcase!
+
+    if [OmeinCompPlan::COMPANY_OMEIN, PranaCompPlan::COMPANY_PRANA].include?(company)
+      return company  
+    else
+      raise 'Invalid company name'
+    end
+  end
+
 end
 

@@ -1,10 +1,15 @@
 Rails.application.routes.draw do
   
-  resources :items
   resources :orders
   resources :payments
   resources :emails
   resources :roles
+  
+  resources :items do
+    collection do
+      get 'by_company'
+    end
+  end
 
   resources :summaries do
     collection do
