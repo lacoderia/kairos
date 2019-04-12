@@ -7,7 +7,7 @@ class CardsController < ApiController
 
   def create
     begin
-      @card = Card.create_for_user(current_user, params[:token], params[:device_session_id], params[:country], params[:company])
+      @card = Card.create_for_user(current_user, params[:token], params[:device_session_id], params[:company])
       render json: @card
     rescue Exception => e
       @card = Card.new
@@ -50,6 +50,12 @@ class CardsController < ApiController
   end
 
   def get_device_session_id
+  end
+
+  private
+
+  def card_params
+    params.require(:card).permit(:company)
   end
 
 end
