@@ -16,4 +16,10 @@ class KairosMailer < ActionMailer::Base
     mail(to: @user.email, subject: "Tu reporte de FuturaNetwork del mes de #{@month}")
   end
 
+  def order user, order 
+    @user = user
+    @order = order
+    mail(to: @user.email, subject: "Futura Network: confirmación de orden #{@order.order_number}")
+  end
+
 end
