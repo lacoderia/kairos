@@ -10,6 +10,7 @@ ActiveAdmin.register Item, as: "Productos" do
     column "Descripción", :description
     column "Precio", :price
     column "Valor comisionable", :commissionable_value
+    column "VP", :volume
     column "Empresa", :company
     column "Imagen", :image do |item|
       image_tag item.image, style: 'height:50px;width:50px;'
@@ -25,6 +26,7 @@ ActiveAdmin.register Item, as: "Productos" do
       f.input :description, label: "Descripción"
       f.input :price, label: "Precio"
       f.input :commissionable_value, label: "Valor comisionable"
+      f.input :volume, label: "VP"
       f.input :company, label: "Empresa", as: :select, 
         collection:[ [OmeinCompPlan::COMPANY_OMEIN], [PranaCompPlan::COMPANY_PRANA] ], include_blank: false
       f.file_field :image, label: "Imagen"
