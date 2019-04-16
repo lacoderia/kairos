@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
   
-  resources :orders
+  resources :orders do
+    collection do
+      get 'all'
+      post 'create_with_items'
+    end
+  end
   resources :payments
   resources :emails
   resources :roles

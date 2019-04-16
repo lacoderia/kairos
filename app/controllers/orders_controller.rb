@@ -25,4 +25,10 @@ class OrdersController < ApiController
     end
   end 
 
+  private
+
+  def order_params
+    params.require(:order).permit(:shipping_address_id)
+  end
+
 end

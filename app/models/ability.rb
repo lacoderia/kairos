@@ -28,6 +28,7 @@ class Ability
         end
       end
       can [:get_all_for_user], ShippingAddress, users: [user]   
+      can :manage, Order, users: [user]
     end
 
   end
