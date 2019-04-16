@@ -66,7 +66,7 @@ feature 'CardsController' do
       Capybara.use_default_driver
 
       #CREATE 2nd CARD
-      create_card_request = {token: token, device_session_id: device_session_id, company: "PRANA"} 
+      create_card_request = {token: token, device_session_id: device_session_id, company: "PRANA", card: {company: "PRANA"}}
       
       with_rack_test_driver do
         page.driver.post cards_path, create_card_request 

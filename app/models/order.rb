@@ -7,9 +7,7 @@ class Order < ApplicationRecord
   
   validates :items, presence: true
 
-  after_create :update_summary_with_uplines
-  after_create :generate_order_number
-  after_update :send_order_email
+  after_create :generate_order_number, :send_order_email, :update_summary_with_uplines
 
   accepts_nested_attributes_for :users
   accepts_nested_attributes_for :items, allow_destroy: true
@@ -121,26 +119,40 @@ class Order < ApplicationRecord
     UpdateVolumeJob.perform_later(user, {period_start: period_start, period_end: period_end, company: company}) 
   end
 
-  def total_price
+  def total_item_price
     self.items.sum do |item|
       item.price
     end
   end
 
-  def total_volume
+  def total_item_volume
     self.items.sum do |item|
       item.volume
     end
+  end
+
+  def total_price
+    item_price = self.total_item_price
+    item_price + shipping_price
+  end
+
+  #todo: calculate shipping price
+  def shipping_price
+    0
+  end
+
+  def update_volume_for_users
+    user = self.users.first
+    company = self.items.first.company
+    period_start = self.created_at.beginning_of_month.strftime("%Y-%m-%d")
+    period_end = (self.created_at.beginning_of_month + 1.month).strftime("%Y-%m-%d")
+    UpdateVolumeJob.perform_later(user, {period_start: period_start, period_end: period_end, company: company})
   end
   
   private
 
   def update_summary_with_uplines
-    user = self.users.first
-    company = self.items.first.company
-    period_start = self.created_at.beginning_of_month.strftime("%Y-%m-%d")
-    period_end = (self.created_at.beginning_of_month + 1.month).strftime("%Y-%m-%d")
-    UpdateVolumeJob.perform_later(user, {period_start: period_start, period_end: period_end, company: company}) 
+    self.update_volume_for_users
   end
 
   def generate_order_number

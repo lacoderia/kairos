@@ -6,7 +6,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
   filter :order_number, label: "Número de orden"
   filter :users, collection: -> { User.all.map { |user| [user.external_id, user.id] }.sort } 
 
-  permit_params :description, :order_number, :user_ids, :created_at, item_ids: [], items_attributes: [:id, :item, :_destroy]
+  permit_params :description, :order_number, :user_ids, :created_at, :shipping_address_id, item_ids: [], items_attributes: [:id, :item, :_destroy]
 
   controller do
 
@@ -36,10 +36,23 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
       params[:order].delete("items_attributes")
 
       order = Order.find(params[:id])
+      original_item_ids = [] 
+      order.items.each do |item| 
+        original_item_ids << item.id.to_s
+      end
+
       order.items.destroy_all
       params[:order][:item_ids].each do |item_id|
         order.items << Item.find(item_id)    
       end
+
+      if (order.created_at.to_s != params[:order][:created_at]) or
+        (params[:order][:item_ids].sort != original_item_ids.sort) or
+        (params[:order][:shipping_address_id] != order.shipping_address_id.to_s)
+        SendEmailJob.perform_later("order", order.users.first, order)
+        order.update_volume_for_users
+      end
+
       params[:order].delete("item_ids")
       super
     end
@@ -56,6 +69,9 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
     end
     column "Nombre" do |order|
       "#{User.find(order.user_ids.first).first_name} #{User.find(order.user_ids.first).last_name}"
+    end
+    column "Dirección" do |order|
+      order.shipping_address.to_s
     end
     column "Item" do |order|
       items = ""
@@ -100,39 +116,27 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
             a.input :last_name, label: "Apellidos", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
           end
         end
+
       else
         f.input :user_ids, label: "ID Omein", as: :select, 
           collection: User.all.sort_by{|user| user.external_id}
           .map{|user| ["#{user.external_id} - #{user.first_name} #{user.last_name}", user.id]}, 
           include_blank: false
       end
-      
-      #f.input :item_ids, label: "Item", as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort,
-      #  include_blank: false
 
-      #item_collection = Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
-      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
-      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
-      #item_collection += Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort
-      #f.input :items, as: :select, collection: Item.all.map {|item| ["#{item.company}-#{item.name}", item.id]}.sort, include_blank: false
-      #f.input :item_ids, label: "Productos", as: :check_boxes, collection: item_collection, 
-      #  include_blank: false
+      if not f.object.users.empty?
+        f.inputs "Dirección de envío" do
+          f.input :shipping_address, label: "Dirección", as: :select, 
+            collection: f.object.users.first.shipping_addresses.map{|sa| [sa.to_s, sa.id]}
+        end
+      end
       
-      #f.input :item, as: :select, collection: Item.all.map {|item| "#{item.company}-#{item.name}"}.sort, include_blank: false
-
-      #f.inputs "Usuario" do
-      #  f.has_many :users, new_record: false do |a|
-      #    a.input :external_id, label: "ID Omein", input_html: { disabled: true, style: "background-color: #d3d3d3;" }
-      #  end
-      #end
       omein_item_collection = Item.where(company: OmeinCompPlan::COMPANY_OMEIN).map {|item| ["#{item.name}", item.id]}.sort
       f.inputs "Productos" do
         f.has_many :items, new_record: true, allow_destroy: true do |a|
          a.input :id, as: :select, collection: omein_item_collection, include_blank: false
         end
       end
-      #f.input :user_ids, as: :select, collection: User.all.map {|user| user.external_id}, include_blank: false
-      #f.input :item_ids, as: :select, collection: Item.all.map {|item| "#{item.company}-#{item.name}"}.sort, include_blank: false
     end
     f.actions   
 

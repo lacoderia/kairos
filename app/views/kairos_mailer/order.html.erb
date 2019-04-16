@@ -1,3 +1,17 @@
-<p><%= @user.first_name %> tu orden <%= @order. %> ha sido registrada. </p>
+<p><%= @user.first_name %> tu orden <%= @order.order_number %> con fecha de <%= @order.created_at.strftime("%d/%m/%Y %I:%M%p") %> ha sido confirmada. </p>
 
-<p>.</p>
+<p>El detalle de la orden es el siguiente:</p>
+
+<ul>
+  <% @order.items.each do |item| %> 
+    <li><%= item.name %> - $ <%= item.price %> - <%= item.volume %> VP </li>
+  <% end %>
+</ul>
+
+<% if @order.shipping_address_id %>
+  <p>Dirección de envío: <%= @order.shipping_address %></p>
+<% end %>
+
+<p><Subtotal: $ <%= @order.total_item_price %> - <%= @order.total_item_volume %> VP </p>
+<p>Envío: $ <%= @order.shipping_price %></p>
+<p><b> Total: $ <%= @order.total_price %> </b></p>
