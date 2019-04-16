@@ -15,7 +15,7 @@ class OrdersController < ApiController
    # POST /orders/create_with_items
   def create_with_items
     begin
-      @order = Order.create_with_items(current_user, params[:total], params[:items], params[:company], params[:shipping_address_id]
+      @order = Order.create_with_items(current_user, params[:total], params[:items], params[:company], params[:shipping_address_id],
                                        params[:card_id], params[:device_session_id])
       render json: @order, include: [:items, :shipping_address]
     rescue Exception => e
