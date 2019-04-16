@@ -4,10 +4,11 @@ class Order < ApplicationRecord
   has_and_belongs_to_many :items
 
   belongs_to :shipping_address, optional: true
+  belongs_to :order, optional: true
   
   validates :items, presence: true
 
-  after_create :generate_order_number, :send_order_email, :update_summary_with_uplines
+  after_create :generate_order_number_and_calculate_prices, :send_order_email, :update_summary_with_uplines
 
   accepts_nested_attributes_for :users
   accepts_nested_attributes_for :items, allow_destroy: true
@@ -56,7 +57,8 @@ class Order < ApplicationRecord
     
     charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id)
     charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), total, description, order_id)
-        
+
+
     order = Order.create!(users: [user], description: description, order_number: order_number, 
                           items: item_array, shipping_address: shipping_address)
       
@@ -131,13 +133,17 @@ class Order < ApplicationRecord
     end
   end
 
-  def total_price
+  def calculate_total_price
     item_price = self.total_item_price
-    item_price + shipping_price
+    if self.shipping_price
+      return item_price + self.shipping_price
+    else
+      return item_price
+    end
   end
 
   #todo: calculate shipping price
-  def shipping_price
+  def calculate_shipping_price
     0
   end
 
@@ -148,6 +154,25 @@ class Order < ApplicationRecord
     period_end = (self.created_at.beginning_of_month + 1.month).strftime("%Y-%m-%d")
     UpdateVolumeJob.perform_later(user, {period_start: period_start, period_end: period_end, company: company})
   end
+
+  def compact_items
+    items_hash = {}
+    
+    self.items.each do |item|
+      if items_hash[item.id] 
+        amount = items_hash[item.id][:amount] + 1
+        items_hash[item.id] = {id: item.id, amount: amount}
+      else
+        items_hash[item.id] = {id: item.id, amount: 1}
+      end
+    end
+
+    items_array = []
+    items_hash.each do |key, value|
+      items_array << value
+    end
+    return items_array
+  end
   
   private
 
@@ -155,10 +180,11 @@ class Order < ApplicationRecord
     self.update_volume_for_users
   end
 
-  def generate_order_number
+  def generate_order_number_and_calculate_prices
     if self.order_number.blank?
       self.update_column(:order_number, "#{Time.zone.now.to_formatted_s(:number)[2..13]}-#{self.users.first.external_id}") 
     end
+    self.update_columns({total_price: self.calculate_total_price, shipping_price: self.calculate_shipping_price})
   end
 
   def send_order_email

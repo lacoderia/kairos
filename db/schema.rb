@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190415224531) do
+ActiveRecord::Schema.define(version: 20190416232522) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -129,6 +129,10 @@ ActiveRecord::Schema.define(version: 20190415224531) do
     t.datetime "updated_at", null: false
     t.string "order_number"
     t.bigint "shipping_address_id"
+    t.float "shipping_price"
+    t.float "total_price"
+    t.bigint "order_id"
+    t.index ["order_id"], name: "index_orders_on_order_id"
     t.index ["shipping_address_id"], name: "index_orders_on_shipping_address_id"
   end
 
@@ -249,6 +253,7 @@ ActiveRecord::Schema.define(version: 20190415224531) do
   add_foreign_key "cards", "users"
   add_foreign_key "emails", "users"
   add_foreign_key "invitations", "users"
+  add_foreign_key "orders", "orders"
   add_foreign_key "orders", "shipping_addresses"
   add_foreign_key "summaries", "users"
 end

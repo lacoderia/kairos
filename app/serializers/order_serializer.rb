@@ -1,6 +1,7 @@
 class OrderSerializer < ActiveModel::Serializer
-  attributes :id, :description, :order_number, :total_item_price, :total_item_volume
-  has_many :items
+  attributes :id, :description, :order_number, :total_item_price, :total_item_volume, :total_price, :shipping_price, :items
+#  has_many :items
+  belongs_to :order
   belongs_to :shipping_address
 
   def total_item_price
@@ -9,6 +10,19 @@ class OrderSerializer < ActiveModel::Serializer
 
   def total_item_volume
     object.total_item_volume
+  end
+
+  def total_price
+    if object.total_price
+      object.total_price
+    else
+      #for previous orders without total_price
+      object.calculate_total_price
+    end
+  end
+
+  def items
+    object.compact_items
   end
   
 end
