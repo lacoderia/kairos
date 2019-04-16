@@ -12,8 +12,8 @@ class Order < ApplicationRecord
   accepts_nested_attributes_for :users
   accepts_nested_attributes_for :items, allow_destroy: true
   
-  scope :prana, -> {joins(:items).where(company: PranaCompPlan::COMPANY_PRANA).order(created_at: :desc).distinct} 
-  scope :omein, -> {joins(:items).where(company: OmeinCompPlan::COMPANY_OMEIN).order(created_at: :desc).distinct}
+  scope :prana, -> {joins(:items).where("items.company = '#{PranaCompPlan::COMPANY_PRANA}'").order(created_at: :desc).distinct} 
+  scope :omein, -> {joins(:items).where("items.company = '#{OmeinCompPlan::COMPANY_OMEIN}'").order(created_at: :desc).distinct}
 
   def self.all_for_user user, company
     company = OpenpayHelper.validate_company(company)    
