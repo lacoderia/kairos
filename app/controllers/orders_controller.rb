@@ -25,6 +25,18 @@ class OrdersController < ApiController
     end
   end 
 
+  # POST /orders/calculate_shipping_price
+  def calculate_shipping_price
+    begin
+      shipping_price = Order.calculate_shipping_price(current_user, params[:items], params[:shipping_address_id])
+      render json: ShippingPriceSerializer.serialize(shipping_price)
+    rescue => e
+      @order = Order.new
+      @order.errors.add(:error_calculating_shipping_price, "Error obteniendo el precio de envío.")
+      render json: ErrorSerializer.serialize(@order.errors), status: 500
+    end
+  end
+
   private
 
   def order_params

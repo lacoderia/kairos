@@ -144,8 +144,6 @@ class Order < ApplicationRecord
 
   #todo: calculate shipping price
   def calculate_shipping_price
-#    tiv = self.total_item_volume
-#    second_order = false
     0
   end
 
@@ -157,13 +155,49 @@ class Order < ApplicationRecord
       total_item_volume += (item.volume * amount)
     end
 
-    previous_orders_count = user.orders.where("created_at >= ? AND created_at <= ?", 
-                                              Time.zone.now.beginning_of_day, Time.zone.now.end_of_day).count
-    
-    # 2, 4.. even returns true for 0 as well
-    if previous_orders_count.even?
-      
+    packages_count = total_item_volume/Config.max_volume_per_order
+
+    if total_item_volume%Config.max_volume_per_order > 0
+      packages_count += 1
+    end
+
+    if packages_count.even?
+      paired_packages = packages_count/2
+      shipping_price = paired_packages * Config.shipping_price_per_2_orders 
+      return {shipping_price: shipping_price, paired_order: "self", message: "Este precio considera $#{Config.shipping_price_per_2_orders} por cada #{Config.max_volume_per_order*2} puntos."}
     else
+      shipping_price = Config.shipping_price_per_order
+
+      if packages_count != 1
+        paired_package_price = (packages_count/2) * Config.shipping_price_per_2_orders
+        shipping_price += paired_package_price 
+      end
+
+      # sent to the same shipping address, and that isn't paired with any other order
+      previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND order_id IS NULL", 
+                                              Time.zone.now.beginning_of_day, Time.zone.now.end_of_day, shipping_address_id)
+
+      # in theory, there will be only one or no previous_orders that are not paired
+      if previous_orders.count > 1
+        raise 'Existe más de una orden que no ha sido emparejada para aprovechar el envío.'
+      end
+      
+      # order to pair with
+      if previous_orders.count == 1
+
+        if packages_count == 1
+          shipping_price = (Config.shipping_price_per_2_orders - Config.shipping_price_per_order)
+          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "Este precio de $#{shipping_price} considera que ya se pagó $#{previous_orders.first.shipping_price} por el pedido #{previous_orders.first.order_number}."}
+        else
+          #delta because one has already been paid
+          shipping_price += (Config.shipping_price_per_2_orders - Config.shipping_price_per_order)
+          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "Este precio de $#{shipping_price} considera que ya se pagó $#{previous_orders.first.shipping_price} por el pedido #{previous_orders.first.order_number}."}
+        end
+
+      # no other orders to pair with
+      else
+        return {shipping_price: shipping_price, paired_order: "none", message: "Este precio considera $#{Config.shipping_price_per_order} hasta #{Config.max_volume_per_order} puntos." }
+      end
 
     end
 
