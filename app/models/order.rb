@@ -50,13 +50,13 @@ class Order < ApplicationRecord
     end
     
     company = OpenpayHelper.validate_company(company)    
-    payment_api = Payment.new(company)
+    payment_api = OpenpayHelper.new(company)
     
     order_number = "#{Time.zone.now.to_formatted_s(:number)[2..13]}-#{user.external_id}"
     description = "Compra de orden en línea - #{order_number}"
     
     charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id)
-    charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), total, description, order_id)
+    charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), total, description, nil)
 
 
     order = Order.create!(users: [user], description: description, order_number: order_number, 
