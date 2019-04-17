@@ -185,6 +185,7 @@ class Order < ApplicationRecord
         items_hash[item.id][:amount] = items_hash[item.id][:amount] + 1
       else
         items_hash[item.id] = item.attributes
+        items_hash[item.id][:image] = item.image_url 
         items_hash[item.id][:amount] = 1
       end
     end
