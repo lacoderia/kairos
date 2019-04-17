@@ -144,7 +144,29 @@ class Order < ApplicationRecord
 
   #todo: calculate shipping price
   def calculate_shipping_price
+#    tiv = self.total_item_volume
+#    second_order = false
     0
+  end
+
+  def self.calculate_shipping_price(user, items_hash, shipping_address_id)
+    total_item_volume = 0
+    items_hash.each do |ih|
+      item = Item.find(ih["id"])
+      amount = ih["amount"].to_i
+      total_item_volume += (item.volume * amount)
+    end
+
+    previous_orders_count = user.orders.where("created_at >= ? AND created_at <= ?", 
+                                              Time.zone.now.beginning_of_day, Time.zone.now.end_of_day).count
+    
+    # 2, 4.. even returns true for 0 as well
+    if previous_orders_count.even?
+      
+    else
+
+    end
+
   end
 
   def update_volume_for_users
@@ -160,10 +182,10 @@ class Order < ApplicationRecord
     
     self.items.each do |item|
       if items_hash[item.id] 
-        amount = items_hash[item.id][:amount] + 1
-        items_hash[item.id] = {id: item.id, amount: amount}
+        items_hash[item.id][:amount] = items_hash[item.id][:amount] + 1
       else
-        items_hash[item.id] = {id: item.id, amount: 1}
+        items_hash[item.id] = item.attributes
+        items_hash[item.id][:amount] = 1
       end
     end
 
