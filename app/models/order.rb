@@ -71,10 +71,12 @@ class Order < ApplicationRecord
       order_id = nil
       if shipping_price[:paired_order] == "self"
         order.update_columns({order_id: order.id, shipping_price: shipping_price[:shipping_price]})
-      elsif shipping_price[:paired_order] != "none"
-        order.update_columns({order_id: shipping_price[:paired_order], shipping_price: shipping_price[:shipping_price]})
-      else
+      elsif shipping_price[:paired_order] == "none"
         order.update_column(:shipping_price, shipping_price[:shipping_price])
+      else
+        order.update_columns({order_id: shipping_price[:paired_order], shipping_price: shipping_price[:shipping_price]})
+        #pair the order
+        Order.find(shipping_price[:paired_order]).update_column(:order_id, order.id)
       end
 
     end
