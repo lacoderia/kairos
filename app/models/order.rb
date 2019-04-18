@@ -35,9 +35,11 @@ class Order < ApplicationRecord
       end
     end
 
-    shipping_price = Order.calculate_shipping_price(user, items, shipping_address_id)
+    if shipping_address_id
+      shipping_price = Order.calculate_shipping_price(user, items, shipping_address_id)
+      amount_verify += shipping_price[:shipping_price]
+    end
 
-    amount_verify += shipping_price[:shipping_price]
       
     if amount_verify != total.to_f
       raise "El total de la orden no concuerda con la suma de los productos y su costo de envío"
@@ -61,15 +63,20 @@ class Order < ApplicationRecord
     
     charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id)
     charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), total, description, nil)
-
+      
     order = Order.create!(users: [user], description: description, order_number: order_number, 
-                          items: item_array, shipping_address: shipping_address, shipping_price: shipping_price[:shipping_price])
+                          items: item_array, shipping_address: shipping_address)
 
-    order_id = nil
-    if shipping_price[:paired_order] == "self"
-      order.update_column(:order_id, order.id)
-    elsif shipping_price[:paired_order] != "none"
-      order.update_column(:order_id, shipping_price[:paired_order])
+    if shipping_address_id 
+      order_id = nil
+      if shipping_price[:paired_order] == "self"
+        order.update_columns({order_id: order.id, shipping_price: shipping_price[:shipping_price]})
+      elsif shipping_price[:paired_order] != "none"
+        order.update_columns({order_id: shipping_price[:paired_order], shipping_price: shipping_price[:shipping_price]})
+      else
+        order.update_column(:shipping_price, shipping_price[:shipping_price])
+      end
+
     end
       
     return order
