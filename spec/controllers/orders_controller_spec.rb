@@ -46,7 +46,7 @@ feature 'OrdersController' do
 
       user_01.shipping_addresses << ShippingAddress.first
 
-      #CREATE
+      #CREATE CARD
       create_card_request = {token: token, device_session_id: device_session_id, company: "prana", card: {company: "PRANA"}} 
       
       with_rack_test_driver do
@@ -57,8 +57,21 @@ feature 'OrdersController' do
       expect(response["card"]["openpay_id"]).to eq token
       expect(response["card"]["primary"]).to eq true
       expect(response["card"]["company"]).to eq "PRANA"
+
+      #CHECK SHIPPING PRICE
+      check_shipping_request = {shipping_address_id: user_01.shipping_addresses.first.id, items: [
+                                  {id: Item.first.id, amount: 3},
+                                  {id: Item.last.id, amount: 1}]}
+      
+      with_rack_test_driver do
+        page.driver.post calculate_shipping_price_orders_path, check_shipping_request 
+      end
             
-      create_order_request = {total: 400, company: "prana", shipping_address_id: user_01.shipping_addresses.first.id,
+      response = JSON.parse(page.body)
+      expect(response["shipping_price"]).to eq 250
+      shipping_price = response["shipping_price"]
+      
+      create_order_request = {total: 400 + shipping_price, company: "prana", shipping_address_id: user_01.shipping_addresses.first.id,
                               card_id: token, device_session_id: device_session_id, items: [
                                 {id: Item.first.id, amount: 3},
                                 {id: Item.last.id, amount: 1}]}

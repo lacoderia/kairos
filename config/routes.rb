@@ -4,6 +4,7 @@ Rails.application.routes.draw do
     collection do
       get 'all'
       post 'create_with_items'
+      post 'calculate_shipping_price'
     end
   end
   resources :payments

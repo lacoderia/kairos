@@ -34,11 +34,15 @@ class Order < ApplicationRecord
         item_array << item
       end
     end
+
+    shipping_price = Order.calculate_shipping_price(user, items, shipping_address_id)
+
+    amount_verify += shipping_price[:shipping_price]
       
     if amount_verify != total.to_f
-      raise "El total de la orden no concuerda con la suma de los productos"
+      raise "El total de la orden no concuerda con la suma de los productos y su costo de envío"
     end 
-
+ 
     if shipping_address_id
       shipping_address = ShippingAddress.find(shipping_address_id)
 
@@ -58,9 +62,15 @@ class Order < ApplicationRecord
     charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id)
     charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), total, description, nil)
 
-
     order = Order.create!(users: [user], description: description, order_number: order_number, 
-                          items: item_array, shipping_address: shipping_address)
+                          items: item_array, shipping_address: shipping_address, shipping_price: shipping_price[:shipping_price])
+
+    order_id = nil
+    if shipping_price[:paired_order] == "self"
+      order.update_column(:order_id, order.id)
+    elsif shipping_price[:paired_order] != "none"
+      order.update_column(:order_id, shipping_price[:paired_order])
+    end
       
     return order
   end
@@ -140,11 +150,6 @@ class Order < ApplicationRecord
     else
       return item_price
     end
-  end
-
-  #todo: calculate shipping price
-  def calculate_shipping_price
-    0
   end
 
   def self.calculate_shipping_price(user, items_hash, shipping_address_id)
@@ -241,7 +246,7 @@ class Order < ApplicationRecord
     if self.order_number.blank?
       self.update_column(:order_number, "#{Time.zone.now.to_formatted_s(:number)[2..13]}-#{self.users.first.external_id}") 
     end
-    self.update_columns({total_price: self.calculate_total_price, shipping_price: self.calculate_shipping_price})
+    self.update_column(:total_price, self.calculate_total_price)
   end
 
   def send_order_email
