@@ -6,7 +6,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
   filter :order_number, label: "Número de orden"
   filter :users, collection: -> { User.all.map { |user| [user.external_id, user.id] }.sort } 
 
-  permit_params :description, :order_number, :user_ids, :created_at, :shipping_address_id, item_ids: [], items_attributes: [:id, :item, :_destroy]
+  permit_params :description, :order_number, :user_ids, :created_at, :shipping_address_id, :shipping_price, item_ids: [], items_attributes: [:id, :item, :_destroy]
 
   controller do
 
@@ -82,12 +82,18 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
       items.html_safe
     end
     column "Puntos" do |order|
-      volume = 0
-      order.item_ids.each do |item_id|
-        item = Item.find(item_id)
-        volume += item.volume
+      order.total_item_volume
+    end
+    column "Precio de productos" do |order|
+      order.total_item_price
+    end
+    column "Precio de envío", :shipping_price 
+    column "Precio total" do |order|
+      if order.total_price
+        order.total_price
+      else
+        order.calculate_total_price
       end
-      volume
     end
     
     actions defaults: true
@@ -137,6 +143,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
          a.input :id, as: :select, collection: omein_item_collection, include_blank: false
         end
       end
+      f.input :shipping_price, label: "Precio de envío" 
     end
     f.actions   
 
