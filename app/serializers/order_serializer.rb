@@ -1,5 +1,5 @@
 class OrderSerializer < ActiveModel::Serializer
-  attributes :id, :description, :order_number, :total_item_price, :total_item_volume, :total_price, :shipping_price, :items
+  attributes :id, :description, :order_number, :total_item_price, :total_item_volume, :total_price, :shipping_price, :items, :created_at
 #  has_many :items
   belongs_to :order
   belongs_to :shipping_address
