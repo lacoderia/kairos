@@ -20,7 +20,7 @@ class Ability
       can :by_company, Item
       can :manage, Invitation, user_id: user.id
       can :manage, Card, user_id: user.id      
-      can [:create, :update, :destroy], ShippingAddress, user.shipping_addresses do |shipping_address|
+      can [:create, :update, :deactivate], ShippingAddress, user.shipping_addresses do |shipping_address|
         if shipping_address.id
           shipping_address.users.first.id == user.id
         else

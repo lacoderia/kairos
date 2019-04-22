@@ -2,7 +2,7 @@ class ShippingAddressesController < ApiController
   
   load_and_authorize_resource
   before_action :authenticate_user!
-  before_action :set_shipping_address, only: [:update, :destroy] 
+  before_action :set_shipping_address, only: [:update, :deactivate] 
 
   # POST /shipping_addresses
   def create
@@ -30,7 +30,7 @@ class ShippingAddressesController < ApiController
   def get_all_for_user
 
     begin
-      @shipping_addresses = current_user.shipping_addresses
+      @shipping_addresses = current_user.shipping_addresses.available
       render json: @shipping_addresses
     rescue Exception => e
       @shipping_address = ShippingAddress.new
@@ -40,13 +40,13 @@ class ShippingAddressesController < ApiController
 
   end
 
-  def destroy
+  def deactivate
     begin
-      @shipping_address.destroy
-      render json: @shipping_addresses
+      @shipping_address.deactivate
+      render json: @shipping_address
     rescue Exception => e
       @shipping_address = ShippingAddress.new
-      @shipping_address.errors.add(:error_deleting_shipping_address, e.message)
+      @shipping_address.errors.add(:error_deactivating_shipping_address, e.message)
       render json: ErrorSerializer.serialize(@shipping_address.errors), status: 500
     end
   end

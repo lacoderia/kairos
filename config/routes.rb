@@ -64,6 +64,9 @@ Rails.application.routes.draw do
   end
   
   resources :shipping_addresses do
+    member do
+      post 'deactivate'
+    end
     collection do
       get 'get_all_for_user'
     end

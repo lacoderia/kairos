@@ -116,27 +116,31 @@ feature 'ShippingAddressesController' do
 
   end
 
-  context 'destroy shipping addresses for user' do
+  context 'deactivate shipping addresses for user' do
 
     let!(:user_01){create(:user, :confirmed, :with_address)}
     let!(:user_02){create(:user, :confirmed, :with_address)}
 
-    it 'should destroy shipping address for logged in user' do
+    it 'should deactivate shipping address for logged in user' do
       
-      expect {page.driver.delete  "#{shipping_addresses_path}/#{user_01.shipping_addresses.first.id}"}.to raise_error.with_message('You are not authorized to access this page.')
+      with_rack_test_driver do
+        expect {page.driver.post deactivate_shipping_address_path(user_01.shipping_addresses.first.id), {} }.to raise_error.with_message('You are not authorized to access this page.')
+      end
+
+      expect(user_01.shipping_addresses.available.count).to eql 1
 
       login_with_service u = { email: user_01.email, password: '12345678' }
       access_token_1, uid_1, client_1, expiry_1, token_type_1 = get_headers
       set_headers access_token_1, uid_1, client_1, expiry_1, token_type_1
 
       with_rack_test_driver do
-        page.driver.delete "#{shipping_addresses_path}/#{user_01.shipping_addresses.first.id}" 
+        page.driver.post deactivate_shipping_address_path(user_01.shipping_addresses.first.id), {} 
       end
+      
+      response = JSON.parse(page.body)
 
       expect(page.status_code).to be 200
-      expect(user_01.shipping_addresses.count).to eql 0
-      
-      expect {page.driver.delete  "#{shipping_addresses_path}/#{user_02.shipping_addresses.first.id}"}.to raise_error.with_message('You are not authorized to access this page.')
+      expect(user_01.shipping_addresses.available.count).to eql 0
       
     end
 

@@ -162,6 +162,11 @@ class Order < ApplicationRecord
   end
 
   def self.calculate_shipping_price(user, items_hash, shipping_address_id)
+
+    if not shipping_address_id
+      return 0
+    end
+
     total_item_volume = 0
     items_hash.each do |ih|
       item = Item.find(ih["id"])
