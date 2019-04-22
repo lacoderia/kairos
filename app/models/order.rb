@@ -188,7 +188,7 @@ class Order < ApplicationRecord
       end
 
       # sent to the same shipping address, and that isn't paired with any other order
-      previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND order_id IS NULL", 
+      previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND orders.id IS NULL", 
                                               Time.zone.now.beginning_of_day, Time.zone.now.end_of_day, shipping_address_id)
 
       # in theory, there will be only one or no previous_orders that are not paired
