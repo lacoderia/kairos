@@ -164,7 +164,7 @@ class Order < ApplicationRecord
   def self.calculate_shipping_price(user, items_hash, shipping_address_id)
 
     if not shipping_address_id
-      return 0
+      return {shipping_price: 0, paired_order: "none", message: "Recoger en tienda no incurre en costos de envío"}
     end
 
     total_item_volume = 0

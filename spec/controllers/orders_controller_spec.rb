@@ -58,6 +58,18 @@ feature 'OrdersController' do
       expect(response["card"]["primary"]).to eq true
       expect(response["card"]["company"]).to eq "PRANA"
 
+      #CHECK SHIPPING PRICE WITHOUT ADDRESS
+      check_shipping_request = {shipping_address_id: nil, items: [
+                                  {id: Item.first.id, amount: 3},
+                                  {id: Item.last.id, amount: 1}]}
+      
+      with_rack_test_driver do
+        page.driver.post calculate_shipping_price_orders_path, check_shipping_request 
+      end
+      
+      response = JSON.parse(page.body)
+      expect(response["shipping_price"]).to eq 0
+
       #CHECK SHIPPING PRICE
       check_shipping_request = {shipping_address_id: user_01.shipping_addresses.first.id, items: [
                                   {id: Item.first.id, amount: 3},
