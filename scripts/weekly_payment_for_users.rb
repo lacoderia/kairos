@@ -80,3 +80,5 @@ CSV.open("payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
     csv << user_txt
   end
 end
+
+KairosMailer.send(:send_weekly_commissions, "payments_weekly_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now

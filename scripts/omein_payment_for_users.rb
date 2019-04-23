@@ -100,3 +100,5 @@ CSV.open("payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
     csv << user_txt
   end
 end
+
+KairosMailer.send(:send_unilevel_commissions_omein, "payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now
