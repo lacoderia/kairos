@@ -13,5 +13,8 @@
 <% end %>
 
 <p><Subtotal: $ <%= @order.total_item_price %> - <%= @order.total_item_volume %> VP </p>
-<p>Envío: $ <%= @order.shipping_price %></p>
+<% if @order.shipping_price %>
+  <p>Envío: $ <%= @order.shipping_price %></p>
+<% end %>
+
 <p><b> Total: $ <%= @order.total_price %> </b></p>

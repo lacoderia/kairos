@@ -15,41 +15,79 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
     end
 
     def create
-      params[:order][:item_ids] = []
-      items = params[:order][:items_attributes]
-      items.each do |ix, item|
-        params[:order][:item_ids] << item[:id]
+      if params[:order][:items_attributes]
+        params[:order][:item_ids] = []
+        items = params[:order][:items_attributes]
+        items.each do |ix, item|
+          params[:order][:item_ids] << item[:id]
+        end
+        params[:order].delete("items_attributes")
       end
-      params[:order].delete("items_attributes")
+
+      if params[:order][:created_at].to_datetime.offset == 0
+        params[:order][:created_at] = params[:order][:created_at].in_time_zone.to_s 
+      end
+
       super
     end
 
     def update
-      params[:order][:item_ids] = []
-      items = params[:order][:items_attributes]
-      items.each do |ix, item|
-        if item[:_destroy] == "1"
-          next
+      if params[:order][:items_attributes] 
+        params[:order][:item_ids] = []
+        items = params[:order][:items_attributes]
+        destroy_count = item_count = 0
+        items.each do |ix, item|
+          item_count += 1
+          if item[:_destroy] == "1"
+            destroy_count += 1
+            next
+          end
+          params[:order][:item_ids] << item[:id]
         end
-        params[:order][:item_ids] << item[:id]
-      end
-      params[:order].delete("items_attributes")
+        if destroy_count == item_count
+          raise 'No pueden haber ordenes sin items'
+        end
+        params[:order].delete("items_attributes")
 
-      order = Order.find(params[:id])
-      original_item_ids = [] 
-      order.items.each do |item| 
-        original_item_ids << item.id.to_s
+        order = Order.find(params[:id])
+        original_item_ids = [] 
+        order.items.each do |item| 
+          original_item_ids << item.id.to_s
+        end
+
+        order.items.destroy_all
+        params[:order][:item_ids].each do |item_id|
+          order.items << Item.find(item_id)    
+        end
       end
 
-      order.items.destroy_all
-      params[:order][:item_ids].each do |item_id|
-        order.items << Item.find(item_id)    
-      end
+      email_update, update_volume = false
+      if order.created_at.to_s != params[:order][:created_at] 
+        if params[:order][:created_at].to_datetime.offset == 0
+          params[:order][:created_at] = params[:order][:created_at].in_time_zone.to_s 
+        end
 
-      if (order.created_at.to_s != params[:order][:created_at]) or
-        (params[:order][:item_ids].sort != original_item_ids.sort) or
-        (params[:order][:shipping_address_id] != order.shipping_address_id.to_s)
+        email_update = true
+        update_volume = true
+        order.update_column(:created_at, params[:order][:created_at]) 
+      end
+      if params[:order][:item_ids].sort != original_item_ids.sort
+        email_update = true
+        update_volume = true
+      end
+      if params[:order][:shipping_address_id] != order.shipping_address_id.to_s
+        email_update = true
+        order.update_column(:shipping_address_id, params[:order][:shipping_address_id])
+      end
+      if params[:order][:shipping_price].to_f != order.shipping_price
+        email_update = true
+        order.update_column(:shipping_price, params[:order][:shipping_price])
+        order.update_column(:total_price,  order.calculate_total_price)
+      end
+      if email_update
         SendEmailJob.perform_later("order", order.users.first, order)
+      end
+      if update_volume
         order.update_volume_for_users
       end
 
@@ -137,7 +175,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
         end
       end
       
-      omein_item_collection = Item.where(company: OmeinCompPlan::COMPANY_OMEIN).map {|item| ["#{item.name}", item.id]}.sort
+      omein_item_collection = Item.where(company: OmeinCompPlan::COMPANY_OMEIN, active: true).map {|item| ["#{item.name}", item.id]}.sort
       f.inputs "Productos" do
         f.has_many :items, new_record: true, allow_destroy: true do |a|
          a.input :id, as: :select, collection: omein_item_collection, include_blank: false
@@ -168,6 +206,9 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
     column "Nombre" do |order|
       "#{User.find(order.user_ids.first).first_name} #{User.find(order.user_ids.first).last_name}"
     end
+    column "Direccion" do |order|
+      order.shipping_address.to_s      
+    end
     column "Item" do |order|
       items = ""
       order.item_ids.each do |item_id|
@@ -177,12 +218,20 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
       items.html_safe
     end
     column "Puntos" do |order|
-      volume = 0
-      order.item_ids.each do |item_id|
-        item = Item.find(item_id)
-        volume += item.volume
+      order.total_item_volume
+    end
+    column "Precio de productos" do |order|
+      order.total_item_price
+    end
+    column "Precio de envio" do |order|
+      order.shipping_price
+    end
+    column "Precio total" do |order|
+      if order.total_price
+        order.total_price
+      else
+        order.calculate_total_price
       end
-      volume
     end
   end
 
