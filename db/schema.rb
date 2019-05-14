@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190422205616) do
+ActiveRecord::Schema.define(version: 20190514232402) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -139,6 +139,10 @@ ActiveRecord::Schema.define(version: 20190422205616) do
     t.float "shipping_price"
     t.float "total_price"
     t.bigint "order_id"
+    t.string "openpay_id"
+    t.string "company"
+    t.string "order_status"
+    t.string "redirect_url"
     t.index ["order_id"], name: "index_orders_on_order_id"
     t.index ["shipping_address_id"], name: "index_orders_on_shipping_address_id"
   end

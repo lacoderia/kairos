@@ -50,6 +50,7 @@ class CardsController < ApiController
   end
 
   def get_device_session_id
+    @card_number = params[:card_number] || "4111111111111111"
   end
 
   private

@@ -162,8 +162,8 @@ class OpenpayHelper
   
   # Obtiene el saldo de una cuenta de Openpay
   # Recibe:
-  # user_openpay_id - el id de Openpay de la cuenta bancaria
-  # Regresa el saldo de la cuenta
+  # user_openpay_id - el id de Openpay del usuario 
+  # Regresa el usuario de Openpay
   def get_user user_openpay_id
     begin
       customers = @openpay.create(:customers)
@@ -178,6 +178,26 @@ class OpenpayHelper
     end
   end
 
+
+  # Obtiene la transacción de una usuario en Openpay
+  # Recibe:
+  # user_openpay_id - el id de Openpay del usuario
+  # user_openpay_id - el id de la transacción de Openpay 
+  # Regresa el status de la transacción
+  def get_transaction user_openpay_id, transaction_id
+    begin
+      charges = @openpay.create(:charges)
+      result_hash = charges.get(transaction_id, user_openpay_id)
+      if result_hash["error_code"]
+        raise result_hash["error_code"] 
+      else
+        return result_hash
+      end
+    rescue Exception => e
+      raise "Error obteniendo una transacción de Openpay - #{e.message}"
+    end
+  end
+
   # Realiza cargo a la tarjeta 
   # Recibe: 
   # user_openpay_id - el id de openpay del usuario 
@@ -187,7 +207,7 @@ class OpenpayHelper
   # description - la descripción de la operación
   # device_session_id - el id generado para detección antifraude
   # Regresa el objeto de cargo
-  def charge user_openpay_id, card_id, amount, order_id, description, device_session_id
+  def charge user_openpay_id, card_id, amount, order_id, description, device_session_id, use_3d_secure = false 
     begin
       charges = @openpay.create(:charges)
       request_hash = {
@@ -196,8 +216,12 @@ class OpenpayHelper
         amount: amount,
         description: description,
         #order_id: order_id, 
-        device_session_id: device_session_id
+        device_session_id: device_session_id,
       }
+      if use_3d_secure
+        request_hash[:redirect_url] = Rails.application.secrets.openpay_redirect_url
+        request_hash[:use_3d_secure] = "true"
+      end
       result_hash = charges.create(request_hash, user_openpay_id)
       if result_hash["error_code"]
         raise result_hash["error_code"] 

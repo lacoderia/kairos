@@ -12,7 +12,7 @@
       $('#device_session_id').html(deviceSessionId);
 
       OpenPay.token.create({
-        "card_number":"4111111111111111",
+        "card_number":"<%= @card_number %>",
         "holder_name":"Juan Perez Ramirez",
         "expiration_year":"20",
         "expiration_month":"12",

@@ -15,11 +15,123 @@ class Order < ApplicationRecord
   
   scope :prana, -> {joins(:items).where("items.company = '#{PranaCompPlan::COMPANY_PRANA}'").order(created_at: :desc).distinct} 
   scope :omein, -> {joins(:items).where("items.company = '#{OmeinCompPlan::COMPANY_OMEIN}'").order(created_at: :desc).distinct}
+  scope :processed, -> {where(order_status: 'PROCESSED')}   
+  scope :validating, -> {where(order_status: 'VALIDATING')}
+
+  before_validation(on: :create) do
+    if self.order_status.nil?
+      self.update_attribute('order_status', 'PROCESSED')
+    end
+  end
+
+  STATUSES = [
+    'VALIDATING',
+    'PROCESSED'
+  ]
+
+  validates :order_status, inclusion: {in: STATUSES}
+
+  state_machine :order_status, initial: 'VALIDATING' do
+    transition 'VALIDATING' => 'PROCESSED', on: :process
+  end
 
   def self.all_for_user user, company
     company = OpenpayHelper.validate_company(company)    
-    user.orders.method(company.downcase).call
+    user.orders.processed.method(company.downcase).call
   end
+
+  def self.validate_charge_and_redirect user, total, items, company, shipping_address_id, card_token, device_session_id
+
+    amount_verify = 0
+    item_array = []
+
+    items.each do |item_hash|
+      item = Item.find(item_hash["id"])
+      amount = item_hash["amount"].to_i
+      amount_verify += (item.price * amount)
+      (0...amount).each do
+        item_array << item
+      end
+    end
+
+    if shipping_address_id
+      shipping_price = Order.calculate_shipping_price(user, items, shipping_address_id)
+      amount_verify += shipping_price[:shipping_price]
+    end
+
+    if amount_verify != total.to_f
+      raise "El total de la orden no concuerda con la suma de los productos y su costo de envío"
+    end 
+ 
+    if shipping_address_id
+      shipping_address = ShippingAddress.find(shipping_address_id)
+
+      if not user.shipping_addresses.include?(shipping_address)
+        raise "La dirección de la orden no está registrada en las direcciones del usuario"
+      end
+    else
+      shipping_address = nil
+    end
+
+    company = OpenpayHelper.validate_company(company)    
+    payment_api = OpenpayHelper.new(company)
+    
+    order_number = "#{Time.zone.now.to_formatted_s(:number)[2..13]}-#{user.external_id}"
+    description = "Compra de orden en línea - #{order_number}"
+    
+    charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id, true)    
+    
+    order = Order.create!(users: [user], description: description, order_number: order_number, openpay_id: charge_hash["id"], company: company, items: item_array, shipping_address: shipping_address, order_status: "VALIDATING", redirect_url: charge_hash["payment_method"]["url"]) 
+
+    return order
+
+  end
+
+  def self.verify_and_apply_fee user, openpay_id
+
+    order = Order.find_by_openpay_id(openpay_id)
+
+    if order
+
+      # verify order in openpay
+      company = OpenpayHelper.validate_company(order.company)    
+      payment_api = OpenpayHelper.new(company)
+
+      order_hash = payment_api.get_transaction(user.get_openpay_id(company), order.openpay_id)
+
+      if order_hash["status"] == "completed"
+    
+        charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), order.total_price, order.description, nil)
+
+        if order.shipping_address
+          shipping_price = order.calculate_shipping_price      
+          order_id = nil
+          if shipping_price[:paired_order] == "self"
+            order.update_columns({order_id: order.id, shipping_price: shipping_price[:shipping_price]})
+          elsif shipping_price[:paired_order] == "none"
+            order.update_column(:shipping_price, shipping_price[:shipping_price])
+          else
+            order.update_columns({order_id: shipping_price[:paired_order], shipping_price: shipping_price[:shipping_price]})
+            #pair the order
+            Order.find(shipping_price[:paired_order]).update_column(:order_id, order.id)
+          end
+  
+        end
+      
+        order.process 
+      
+        return order
+
+      else
+        raise "La orden no fue completada con éxito - #{}"
+      end
+
+    else 
+      raise "La orden no pudo ser encontrada."
+    end
+
+  end
+
 
   def self.create_with_items user, total, items, company, shipping_address_id, card_token, device_session_id
 
@@ -40,7 +152,6 @@ class Order < ApplicationRecord
       amount_verify += shipping_price[:shipping_price]
     end
 
-      
     if amount_verify != total.to_f
       raise "El total de la orden no concuerda con la suma de los productos y su costo de envío"
     end 
@@ -161,21 +272,10 @@ class Order < ApplicationRecord
     end
   end
 
-  def self.calculate_shipping_price(user, items_hash, shipping_address_id)
-
-    if not shipping_address_id
-      return {shipping_price: 0, paired_order: "none", message: "Recoger en tienda no incurre en costos de envío"}
-    end
-
-    total_item_volume = 0
-    items_hash.each do |ih|
-      item = Item.find(ih["id"])
-      amount = ih["amount"].to_i
-      total_item_volume += (item.volume * amount)
-    end
+  def self.shipping_price_helper user, shipping_address_id, total_item_volume
 
     packages_count = total_item_volume/Config.max_volume_per_order
-
+    
     if total_item_volume%Config.max_volume_per_order > 0
       packages_count += 1
     end
@@ -193,8 +293,7 @@ class Order < ApplicationRecord
       end
 
       # sent to the same shipping address, and that isn't paired with any other order
-      previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND orders.id IS NULL", 
-                                              Time.zone.now.beginning_of_day, Time.zone.now.end_of_day, shipping_address_id)
+      previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND orders.id IS NULL AND orders.order_status = ?", Time.zone.now.beginning_of_day, Time.zone.now.end_of_day, shipping_address_id, "PROCESSED")
 
       # in theory, there will be only one or no previous_orders that are not paired
       if previous_orders.count > 1
@@ -219,6 +318,38 @@ class Order < ApplicationRecord
       end
 
     end
+
+  end
+
+  def calculate_shipping_price
+
+    if self.shipping_address.nil?
+      return {shipping_price: 0, paired_order: "none", message: "Recoger en tienda no incurre en costos de envío"}
+    end
+
+    total_item_volume = 0
+    items.each do |item|
+      total_item_volume += item.volume
+    end
+
+    return Order.shipping_price_helper self.user, self.shipping_address.id, total_item_volume     
+
+  end
+
+  def self.calculate_shipping_price(user, items_hash, shipping_address_id)
+
+    if not shipping_address_id
+      return {shipping_price: 0, paired_order: "none", message: "Recoger en tienda no incurre en costos de envío"}
+    end
+
+    total_item_volume = 0
+    items_hash.each do |ih|
+      item = Item.find(ih["id"])
+      amount = ih["amount"].to_i
+      total_item_volume += (item.volume * amount)
+    end
+
+    return Order.shipping_price_helper user, shipping_address_id, total_item_volume         
 
   end
 
