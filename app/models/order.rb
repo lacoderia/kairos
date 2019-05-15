@@ -54,6 +54,7 @@ class Order < ApplicationRecord
       end
     end
 
+    shipping_price = {}
     if shipping_address_id
       shipping_price = Order.calculate_shipping_price(user, items, shipping_address_id)
       amount_verify += shipping_price[:shipping_price]
@@ -90,7 +91,7 @@ class Order < ApplicationRecord
     charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, 
                                      device_session_id, redirect_url)    
     
-    order = Order.create!(users: [user], description: description, order_number: order_number, openpay_id: charge_hash["id"], company: company, items: item_array, shipping_address: shipping_address, order_status: "VALIDATING", redirect_url: charge_hash["payment_method"]["url"]) 
+    order = Order.create!(users: [user], description: description, order_number: order_number, openpay_id: charge_hash["id"], company: company, items: item_array, shipping_address: shipping_address, order_status: "VALIDATING", redirect_url: charge_hash["payment_method"]["url"], shipping_price: shipping_price[:shipping_price]) 
 
     return order
 
@@ -116,15 +117,14 @@ class Order < ApplicationRecord
           shipping_price = order.calculate_shipping_price      
           order_id = nil
           if shipping_price[:paired_order] == "self"
-            order.update_columns({order_id: order.id, shipping_price: shipping_price[:shipping_price]})
-          elsif shipping_price[:paired_order] == "none"
-            order.update_column(:shipping_price, shipping_price[:shipping_price])
-          else
-            order.update_columns({order_id: shipping_price[:paired_order], shipping_price: shipping_price[:shipping_price]})
+            order.update_column("order_id", order.id)
+          elsif shipping_price[:paired_order] != "none"
+            order.update_column("order_id", shipping_price[:paired_order])
             #pair the order
             Order.find(shipping_price[:paired_order]).update_column(:order_id, order.id)
+          #else
+            #order.update_column(:shipping_price, shipping_price[:shipping_price])
           end
-  
         end
       
         order.process 
