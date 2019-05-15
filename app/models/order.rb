@@ -344,7 +344,7 @@ class Order < ApplicationRecord
       total_item_volume += item.volume
     end
 
-    return Order.shipping_price_helper self.user, self.shipping_address.id, total_item_volume     
+    return Order.shipping_price_helper self.users.first, self.shipping_address.id, total_item_volume     
 
   end
 
