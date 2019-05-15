@@ -6,7 +6,7 @@ PERIOD_END = ARGV[1].to_s.in_time_zone
 
 CSV.open("payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "$ BONO RAPIDO", "IDS BONO RAPIDO", "$ BONO DIFERIDO", "IDS BONO DIFERIDO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ TOTAL", "$ MAXIMO" ]
-  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ?", PERIOD_START, PERIOD_END).order("external_id desc")
+  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ? AND orders.order_status != ?", PERIOD_START, PERIOD_END, "VALIDATING").order("external_id desc")
     
   users.uniq.each do |user|
 
@@ -68,4 +68,4 @@ CSV.open("payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   end
 end
 
-KairosMailer.send(:send_unilevel_commissions_prana, "payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now
+#KairosMailer.send(:send_unilevel_commissions_prana, "payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now

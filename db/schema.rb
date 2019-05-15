@@ -141,7 +141,7 @@ ActiveRecord::Schema.define(version: 20190514232402) do
     t.bigint "order_id"
     t.string "openpay_id"
     t.string "company"
-    t.string "order_status"
+    t.string "order_status", default: "PROCESSED"
     t.string "redirect_url"
     t.index ["order_id"], name: "index_orders_on_order_id"
     t.index ["shipping_address_id"], name: "index_orders_on_shipping_address_id"

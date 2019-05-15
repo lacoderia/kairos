@@ -207,7 +207,7 @@ class OpenpayHelper
   # description - la descripción de la operación
   # device_session_id - el id generado para detección antifraude
   # Regresa el objeto de cargo
-  def charge user_openpay_id, card_id, amount, order_id, description, device_session_id, use_3d_secure = false 
+  def charge user_openpay_id, card_id, amount, order_id, description, device_session_id, redirect_url = nil 
     begin
       charges = @openpay.create(:charges)
       request_hash = {
@@ -218,8 +218,9 @@ class OpenpayHelper
         #order_id: order_id, 
         device_session_id: device_session_id,
       }
-      if use_3d_secure
-        request_hash[:redirect_url] = Rails.application.secrets.openpay_redirect_url
+      if redirect_url
+        
+        request_hash[:redirect_url] = redirect_url 
         request_hash[:use_3d_secure] = "true"
       end
       result_hash = charges.create(request_hash, user_openpay_id)

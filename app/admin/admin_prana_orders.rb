@@ -11,7 +11,7 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
   controller do
 
     def scoped_collection
-      Order.joins(:items).where("company = ?", PranaCompPlan::COMPANY_PRANA).distinct
+      Order.joins(:items).where("items.company = ? AND orders.order_status != ?", PranaCompPlan::COMPANY_PRANA, "VALIDATING").distinct
     end
 
     def create

@@ -144,8 +144,9 @@ class User < ApplicationRecord
   end
 
   def get_personal_volume_detail period_start, period_end, company
-    user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                        company, period_start, period_end).order(created_at: :asc).uniq
+    user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
+                                                  AND orders.order_status != ?", company, period_start, period_end, 
+                                                  "VALIDATING").order(created_at: :asc).uniq
 
     return Order.get_volume_detail user_orders
   end
@@ -168,13 +169,14 @@ class User < ApplicationRecord
 
   def omein_get_power_start_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
 
-    previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start).uniq
+    previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?
+                                                            AND orders.order_status != ?", company, period_start, "VALIDATING").uniq
 
     if previous_omein_orders.count > 0
       return {items: [], total_volume: 0}
     else
-      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                       company, period_start, period_end).order(created_at: :asc).uniq
+      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
+                        AND orders.order_status != ?", company, period_start, period_end, "VALIDATING").order(created_at: :asc).uniq
       
       return Order.get_volume_detail [current_omein_orders.first]
     end
@@ -202,8 +204,8 @@ class User < ApplicationRecord
       
     else
 
-      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", 
-                                                       company, period_start, period_end).uniq
+      current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
+                                                AND orders.order_status != ?", company, period_start, period_end, "VALIDATING").uniq
 
       return Order.get_volume_detail_avoid_first_order current_omein_orders
        

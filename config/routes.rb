@@ -5,6 +5,8 @@ Rails.application.routes.draw do
       get 'all'
       post 'create_with_items'
       post 'calculate_shipping_price'
+      post 'validate_charge_and_redirect'
+      post 'verify_and_apply_fee'
     end
   end
   resources :payments

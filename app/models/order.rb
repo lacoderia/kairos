@@ -78,8 +78,17 @@ class Order < ApplicationRecord
     
     order_number = "#{Time.zone.now.to_formatted_s(:number)[2..13]}-#{user.external_id}"
     description = "Compra de orden en línea - #{order_number}"
-    
-    charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, device_session_id, true)    
+   
+    if company == PranaCompPlan::COMPANY_PRANA 
+      redirect_url = Rails.application.secrets.prana_openpay_redirect_url
+    elsif company == OmeinCompPlan::COMPANY_OMEIN
+      redirect_url = Rails.application.secrets.omein_openpay_redirect_url
+    else
+      raise "Error encontrando compañía correcta"
+    end
+
+    charge_hash = payment_api.charge(user.get_openpay_id(company), card_token, total, nil, description, 
+                                     device_session_id, redirect_url)    
     
     order = Order.create!(users: [user], description: description, order_number: order_number, openpay_id: charge_hash["id"], company: company, items: item_array, shipping_address: shipping_address, order_status: "VALIDATING", redirect_url: charge_hash["payment_method"]["url"]) 
 
@@ -123,7 +132,7 @@ class Order < ApplicationRecord
         return order
 
       else
-        raise "La orden no fue completada con éxito - #{}"
+        raise "La orden no fue completada con éxito - #{order_hash["status"]}"
       end
 
     else 

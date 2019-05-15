@@ -14,8 +14,8 @@ class PranaCompPlan
   def self.calculate_quick_starts period_start, period_end, launch_event = false
 
     users = User.joins(:orders => :items).where("users.quick_start_paid = ? AND orders.created_at >= ? AND orders.created_at < 
-                                                ? AND items.company = ?", false, period_start - 1.month, period_end,
-                                                COMPANY_PRANA).order("external_id desc").uniq
+                                                ? AND items.company = ? AND orders.order_status != ?", false, period_start - 1.month,
+                                                period_end, COMPANY_PRANA, "VALIDATING").order("external_id desc").uniq
 
     
     quick_start_payments = 0
@@ -141,8 +141,9 @@ class PranaCompPlan
 
   def self.calculate_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?",
-                                                COMPANY_PRANA, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
+                                                AND orders.order_status != ?", COMPANY_PRANA, period_start, period_end, 
+                                               "VALIDATING").order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo de #{COMPANY_PRANA} en el periodo #{period_start} - #{period_end}"
 

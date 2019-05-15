@@ -12,7 +12,7 @@ class OrdersController < ApiController
     end
   end
 
-   # POST /orders/create_with_items
+  # POST /orders/create_with_items
   def create_with_items
     begin
       @order = Order.create_with_items(current_user, params[:total], params[:items], params[:company], params[:shipping_address_id],
@@ -24,6 +24,31 @@ class OrdersController < ApiController
       render json: ErrorSerializer.serialize(@order.errors), status: 500
     end
   end 
+
+   # POST /orders/validate_charge_and_redirect
+  def validate_charge_and_redirect
+    begin
+      @order = Order.validate_charge_and_redirect(current_user, params[:total], params[:items], params[:company],
+                                                  params[:shipping_address_id], params[:card_id], params[:device_session_id])
+      render json: @order, include: [:items, :shipping_address]
+    rescue Exception => e
+      @order = Order.new
+      @order.errors.add(:error_creating_order, "Error creando la orden. #{e.message}")
+      render json: ErrorSerializer.serialize(@order.errors), status: 500
+    end
+  end
+
+  # POST /orders/verify_and_apply_fee
+  def verify_and_apply_fee
+    begin
+      @order = Order.verify_and_apply_fee(current_user, params[:openpay_id])
+      render json: @order, include: [:items, :shipping_address]
+    rescue Exception => e
+      @order = Order.new
+      @order.errors.add(:error_creating_order, "Error creando la orden. #{e.message}")
+      render json: ErrorSerializer.serialize(@order.errors), status: 500
+    end
+  end
 
   # POST /orders/calculate_shipping_price
   def calculate_shipping_price

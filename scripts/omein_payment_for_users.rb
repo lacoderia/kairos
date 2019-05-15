@@ -6,7 +6,7 @@ PERIOD_END = ARGV[1].to_s.in_time_zone
 
 CSV.open("payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   csv << ["ID OMEIN", "NOMBRE", "APELLIDO", "EMAIL", "RANGO MAXIMO", "RANGO ACTUAL", "RANGO NUEVO", "$ NIVEL 1", "NIVEL 1 IDS", "$ NIVEL 2", "NIVEL 2 IDS", "$ NIVEL 3", "NIVEL 3 IDS", "$ NIVEL 4", "NIVEL 4 IDS", "$ NIVEL 5", "NIVEL 5 IDS", "$ NIVEL 6", "NIVEL 6 IDS", "$ NIVEL 7", "NIVEL 7 IDS", "$ NIVEL 8", "NIVEL 8 IDS", "$ NIVEL 9", "NIVEL 9 IDS", "$ TOTAL" ]
-  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ?", PERIOD_START, PERIOD_END).order("external_id desc")
+  users = User.joins(:orders).where("orders.created_at >= ? AND orders.created_at < ? AND orders.order_status != ?", PERIOD_START, PERIOD_END, "VALIDATING").order("external_id desc")
     
   users.uniq.each do |user|
 
@@ -101,4 +101,4 @@ CSV.open("payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   end
 end
 
-KairosMailer.send(:send_unilevel_commissions_omein, "payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now
+#KairosMailer.send(:send_unilevel_commissions_omein, "payments_omein_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now

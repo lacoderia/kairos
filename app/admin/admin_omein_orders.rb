@@ -11,7 +11,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
   controller do
 
     def scoped_collection
-      Order.joins(:items).where("company = ?", OmeinCompPlan::COMPANY_OMEIN).distinct
+      Order.joins(:items).where("items.company = ? AND orders.order_status != ?", OmeinCompPlan::COMPANY_OMEIN, "VALIDATING").distinct
     end
 
     def create

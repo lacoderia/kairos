@@ -50,7 +50,7 @@ class OmeinCompPlan
   
   def self.calculate_active_for_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?", COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?  AND orders.order_status != ?", COMPANY_OMEIN, period_start, period_end, "VALIDATING").order("external_id desc").uniq
 
     users_active_for_royalties = []
 
@@ -432,8 +432,9 @@ class OmeinCompPlan
   #WEEKLY PERIODS
   def self.calculate_selling_bonus period_start, period_end
 
-    users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ? AND items.company = ?",
-                                                period_start, period_end, COMPANY_OMEIN).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ? AND items.company = ?
+                                                AND orders.order_status != ?", period_start, period_end, COMPANY_OMEIN, 
+                                                "VALIDATING").order("external_id desc").uniq
 
     base_payments = 0
     level_1_payments = 0
@@ -542,8 +543,9 @@ class OmeinCompPlan
   def self.calculate_power_starts period_start, period_end 
 
     users = User.joins(:orders => :items).where("users.created_at >= ? AND users.created_at < ? AND orders.created_at >= ? AND
-                                                orders.created_at < ? AND items.company = ?", period_start - 1.month, period_end,
-                                                period_start, period_end, COMPANY_OMEIN).order("external_id desc").uniq
+                                                orders.created_at < ? AND items.company = ? AND orders.order_status != ?",
+                                                period_start - 1.month, period_end, period_start, period_end, COMPANY_OMEIN,
+                                               "VALIDATING").order("external_id desc").uniq
 
     puts "#{users.count} usuarios nuevos con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
     
@@ -605,8 +607,9 @@ class OmeinCompPlan
 
   def self.calculate_royalties period_start, period_end
 
-    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?",
-                                                COMPANY_OMEIN, period_start, period_end).order("external_id desc").uniq
+    users = User.joins(:orders => :items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
+                                                AND orders.order_status != ?", COMPANY_OMEIN, period_start, period_end, 
+                                               "VALIDATING").order("external_id desc").uniq
 
     puts "#{users.count} usuarios con consumo de #{COMPANY_OMEIN} en el periodo #{period_start} - #{period_end}"
 
