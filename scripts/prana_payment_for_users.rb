@@ -68,4 +68,4 @@ CSV.open("payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "wb") do |csv|
   end
 end
 
-#KairosMailer.send(:send_unilevel_commissions_prana, "payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now
+KairosMailer.send(:send_unilevel_commissions_prana, "payments_prana_#{ARGV[0]}_#{ARGV[1]}.csv", "#{PERIOD_START} - #{PERIOD_END}").deliver_now

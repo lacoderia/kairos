@@ -128,6 +128,7 @@ class Order < ApplicationRecord
         end
       
         order.process 
+        SendEmailJob.perform_later("order", self.users.first, self) 
       
         return order
 
@@ -404,7 +405,9 @@ class Order < ApplicationRecord
   end
 
   def send_order_email
-    SendEmailJob.perform_later("order", self.users.first, self) 
+    if self.order_status == "PROCESSED"
+      SendEmailJob.perform_later("order", self.users.first, self) 
+    end
   end
 
 end
