@@ -128,7 +128,9 @@ class Order < ApplicationRecord
         end
       
         order.process 
-        SendEmailJob.perform_later("order", self.users.first, self) 
+        #background jobs
+        SendEmailJob.perform_later("order", order.users.first, order) 
+        order.update_volume_for_users
       
         return order
 
@@ -394,7 +396,9 @@ class Order < ApplicationRecord
   private
 
   def update_summary_with_uplines
-    self.update_volume_for_users
+    if self.order_status == "PROCESSED"    
+      self.update_volume_for_users
+    end
   end
 
   def generate_order_number_and_calculate_prices
