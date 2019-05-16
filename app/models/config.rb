@@ -3,6 +3,7 @@ class Config < ActiveRecord::Base
   DEFAULT_MAX_VOLUME_PER_ORDER = 210
   DEFAULT_SHIPPING_PRICE_PER_ORDER = 180
   DEFAULT_SHIPPING_PRICE_PER_2_ORDERS = 250
+  DEFAULT_ORDER_NOTIFICATION_EMAIL = "servicioalcliente@omein.com"
 
    def self.max_volume_per_order
     max_volume_per_order = Config.find_by_key("max_volume_per_order")
@@ -40,6 +41,19 @@ class Config < ActiveRecord::Base
       end
     else
       return DEFAULT_SHIPPING_PRICE_PER_2_ORDERS
+    end
+   end
+
+   def self.order_notification_email
+    order_notification_email = Config.find_by_key("order_notification_email")
+    if  order_notification_email
+      begin
+        return order_notification_email
+      rescue Exception => e
+        return DEFAULT_ORDER_NOTIFICATION_EMAIL
+      end
+    else
+      return DEFAULT_ORDER_NOTIFICATION_EMAIL
     end
    end
 

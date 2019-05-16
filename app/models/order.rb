@@ -130,6 +130,7 @@ class Order < ApplicationRecord
         order.process 
         #background jobs
         SendEmailJob.perform_later("order", order.users.first, order) 
+        SendEmailJob.perform_later("process_order", order.users.first, order) 
         order.update_volume_for_users
       
         return order

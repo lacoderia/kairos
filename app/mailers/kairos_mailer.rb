@@ -22,6 +22,12 @@ class KairosMailer < ActionMailer::Base
     mail(to: @user.email, subject: "Futura Network: confirmación de orden #{@order.order_number}")
   end
 
+  def process_order user, order
+    @user = user
+    @order = order
+    mail(to: Config.order_notification_email, subject: "Nuevo pedido en línea #{@order.company} - #{@order.order_number}")
+  end
+
   def send_weekly_commissions filepath, period
     attachments[filepath] = File.read(filepath)
     mail(to: "benjamin@coderia.mx, ricardo@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork semanales de #{period}")

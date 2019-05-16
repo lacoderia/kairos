@@ -27,3 +27,9 @@ Item.create!(company: "PRANA", name: "CREMA DE CARA", price: 420, volume: 40)
 Item.create!(company: "PRANA", name: "SHAMPOO", price: 219, volume: 16)
 Item.create!(company: "PRANA", name: "MONK", price: 398, volume: 35)
 Item.create!(company: "OMEIN", name: "MONK", price: 398, volume: 35, commissionable_value: 308)
+
+#Config
+Config.create(key: "max_volume_per_order", value: "210")
+Config.create(key: "shipping_price_per_order", value: "180")
+Config.create(key: "shipping_price_per_2_orders", value: "250")
+Config.create(key: "order_notification_email", value: "servicioalcliente@omein.com")
