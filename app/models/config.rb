@@ -48,7 +48,7 @@ class Config < ActiveRecord::Base
     order_notification_email = Config.find_by_key("order_notification_email")
     if  order_notification_email
       begin
-        return order_notification_email
+        return order_notification_email.value
       rescue Exception => e
         return DEFAULT_ORDER_NOTIFICATION_EMAIL
       end
