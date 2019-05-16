@@ -308,14 +308,14 @@ class Order < ApplicationRecord
       previous_orders = user.orders.where("created_at >= ? AND created_at <= ? AND shipping_address_id = ? AND orders.order_id IS NULL AND orders.order_status != ?", Time.zone.now.beginning_of_day, Time.zone.now.end_of_day, shipping_address_id, "VALIDATING")
 
       # in theory, there will be only one or no previous_orders that are not paired
-      if previous_orders.count > 1
-        raise 'Existe más de una orden que no ha sido emparejada para aprovechar el envío.'
-      end
+      #if previous_orders.count > 1
+      #  raise 'Existe más de una orden que no ha sido emparejada para aprovechar el envío.'
+      #end
       
       # order to pair with
       if previous_orders.count == 1
 
-        if packages_count == 1
+        if packages_count >= 1
           shipping_price = (Config.shipping_price_per_2_orders - Config.shipping_price_per_order)
           return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "Este precio de $#{shipping_price} considera que ya se pagó $#{previous_orders.first.shipping_price} por el pedido #{previous_orders.first.order_number}."}
         else
