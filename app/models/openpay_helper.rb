@@ -2,9 +2,9 @@ class OpenpayHelper
   
   def initialize(company)
     if company == PranaCompPlan::COMPANY_PRANA
-      @openpay = OpenpayApi.new(Rails.application.secrets.prana_openpay_merchant_id, Rails.application.secrets.prana_openpay_private_key)
+      @openpay = OpenpayApi.new(Rails.application.secrets.prana_openpay_merchant_id, Rails.application.secrets.prana_openpay_private_key, true)
     elsif company == OmeinCompPlan::COMPANY_OMEIN
-      @openpay = OpenpayApi.new(Rails.application.secrets.omein_openpay_merchant_id, Rails.application.secrets.omein_openpay_private_key)
+      @openpay = OpenpayApi.new(Rails.application.secrets.omein_openpay_merchant_id, Rails.application.secrets.omein_openpay_private_key, true)
     else
       raise "Incorrect company name"
     end
