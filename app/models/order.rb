@@ -111,8 +111,6 @@ class Order < ApplicationRecord
 
       if order_hash["status"] == "completed"
     
-        charge_fee_hash = payment_api.charge_fee(user.get_openpay_id(company), order.total_price, order.description, nil)
-
         if order.shipping_address
           shipping_price = order.calculate_shipping_price      
           order_id = nil
@@ -132,6 +130,7 @@ class Order < ApplicationRecord
         SendEmailJob.perform_later("order", order.users.first, order) 
         SendEmailJob.perform_later("process_order", order.users.first, order) 
         order.update_volume_for_users
+        ChargeFeeJob.perform_later(user, company, order)
       
         return order
 
