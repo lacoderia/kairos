@@ -1,5 +1,5 @@
 class ChargeFeeJob < ActiveJob::Base
-  retry_on Exception
+  retry_on Exception, wait: 10.seconds
   queue_as :default
 
   def perform(user, company, order)
