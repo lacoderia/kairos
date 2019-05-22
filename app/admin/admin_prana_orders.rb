@@ -174,7 +174,7 @@ ActiveAdmin.register Order, as: "Prana Ordenes" do
         end
       end
       
-      prana_item_collection = Item.where(company: PranaCompPlan::COMPANY_PRANA, active: true).map {|item| ["#{item.name}", item.id]}.sort
+      prana_item_collection = Item.where(company: PranaCompPlan::COMPANY_PRANA).map {|item| ["#{item.name}", item.id]}.sort
       f.inputs "Productos" do
         f.has_many :items, new_record: true, allow_destroy: true do |a|
          a.input :id, as: :select, collection: prana_item_collection, include_blank: false

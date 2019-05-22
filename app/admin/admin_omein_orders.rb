@@ -175,7 +175,7 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
         end
       end
       
-      omein_item_collection = Item.where(company: OmeinCompPlan::COMPANY_OMEIN, active: true).map {|item| ["#{item.name}", item.id]}.sort
+      omein_item_collection = Item.where(company: OmeinCompPlan::COMPANY_OMEIN).map {|item| ["#{item.name}", item.id]}.sort
       f.inputs "Productos" do
         f.has_many :items, new_record: true, allow_destroy: true do |a|
          a.input :id, as: :select, collection: omein_item_collection, include_blank: false
