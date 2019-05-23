@@ -55,7 +55,7 @@ class OpenpayHelper
         return result_hash
       end
     rescue Exception => e
-      raise "Error creando tarjeta. Por favor verifica que los datos son correctos."
+      raise "Error dando de alta tarjeta. Por favor verifica que los datos son correctos o intenta con alguna otra."
     end
   end
 
