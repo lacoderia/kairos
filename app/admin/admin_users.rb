@@ -29,16 +29,6 @@ ActiveAdmin.register User, as: "Distribuidores" do
       end
     end
 
-    def update
-      if not current_admin_user.role? :niumedia
-        if params[:instructor][:admin_user_attributes][:password].blank?
-          params[:instructor][:admin_user_attributes].delete("password")
-          params[:instructor][:admin_user_attributes].delete("password_confirmation")
-        end
-      end
-      super
-    end
-
     def update 
       
       sponsor = User.find_by_external_id(params[:user][:sponsor_external_id])
@@ -82,7 +72,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
   form do |f|
     #Default values
     f.object.created_at = DateTime.now unless f.object.created_at
-    f.object.external_id = User.with_max_id.external_id + 1
+    f.object.external_id = User.with_max_id.external_id + 1 unless f.object.external_id
     
     f.semantic_errors *f.object.errors.keys
 
