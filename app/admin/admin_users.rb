@@ -2,7 +2,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
 
   actions :all, :except => [:show, :destroy]
 
-  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, :beneficiary_name, :beneficiary_dob, :beneficiary_relationship, :beneficiary_phone_number, shipping_addresses_attributes: [:address, :city, :state, :country, :zip] 
+  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, :beneficiary_name, :beneficiary_dob, :beneficiary_relationship, :beneficiary_phone_number, shipping_addresses_attributes: [:address, :city, :state, :country, :zip, :reference, :between_streets, :phone, :name] 
   
   filter :first_name, as: :string, label: "Nombre"
   filter :last_name, as: :string, label: "Apellido"
@@ -97,9 +97,13 @@ ActiveAdmin.register User, as: "Distribuidores" do
             a.input :address, label: "Dirección"
             a.input :city, label: "Ciudad"
             a.input :state, label: "Estado"
-            a.input :country, label: "País", collection: ["México", "España", "Colombia", "Otro"], 
+            a.input :country, label: "País", collection: ["México"], 
               as: :select, selected: "México", include_blank: false
             a.input :zip, label: "Código Postal"
+            a.input :name, label: "Nombre de quien recibe"
+            a.input :phone, label: "Teléfono"
+            a.input :between_streets, label: "Entrecalles"
+            a.input :reference, label: "Referencia"
         end
       end
     end

@@ -58,7 +58,7 @@ class ShippingAddressesController < ApiController
     end
 
     def shipping_address_params
-      params.require(:shipping_address).permit(:location, :address, :state, :country, :zip, :city)
+      params.require(:shipping_address).permit(:location, :address, :state, :country, :zip, :city, :name, :phone, :reference, :between_streets)
     end
   
 end

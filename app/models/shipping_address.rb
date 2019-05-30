@@ -9,6 +9,10 @@ class ShippingAddress < ApplicationRecord
     "#{self.address}, #{self.state} #{self.city}, #{self.zip} #{self.country}"
   end
 
+  def to_s_with_reference
+    "#{self.address}, #{self.state} #{self.city}, #{self.zip} #{self.country},\n nombre de quien recibe: #{self.name}, teléfono: #{self.phone}, referencia: #{self.reference}, entre calles: #{self.between_streets}"
+  end
+
   def deactivate
     self.update_attribute("active", false)
     return self

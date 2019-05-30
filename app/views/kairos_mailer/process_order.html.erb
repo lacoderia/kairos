@@ -9,7 +9,7 @@
 </ul>
 
 <% if @order.shipping_address_id %>
-  <p>Dirección de envío: <%= @order.shipping_address %></p>
+  <p>Dirección de envío: <%= @order.shipping_address.to_s_with_reference %></p>
 <% end %>
 
 <p><Subtotal: $ <%= @order.total_item_price %> - <%= @order.total_item_volume %> VP </p>
