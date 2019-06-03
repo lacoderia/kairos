@@ -295,7 +295,7 @@ class Order < ApplicationRecord
     if packages_count.even?
       paired_packages = packages_count/2
       shipping_price = paired_packages * Config.shipping_price_per_2_orders 
-      return {shipping_price: shipping_price, paired_order: "self", message: "El precio de envío a esta dirección es de $#{printf("%.2f", Config.shipping_price_per_2_orders)} por cada #{Config.max_volume_per_order*2} puntos."}
+      return {shipping_price: shipping_price, paired_order: "self", message: "El precio de envío a esta dirección es de $#{'%.2f' % Config.shipping_price_per_2_orders} por cada #{Config.max_volume_per_order*2} puntos."}
     else
       shipping_price = Config.shipping_price_per_order
 
@@ -317,16 +317,16 @@ class Order < ApplicationRecord
 
         if packages_count == 1
           shipping_price = (Config.shipping_price_per_2_orders - Config.shipping_price_per_order)
-          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "El precio de envío de $#{printf("%.2f", shipping_price)} considera que hoy ya se pagó a esta misma dirección la cantidad de $#{printf("%.2f", previous_orders.first.shipping_price)} por el pedido #{previous_orders.first.order_number}."}
+          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "El precio de envío de $#{'%.2f' % shipping_price} considera que hoy ya se pagó a esta misma dirección la cantidad de $#{'%.2f' %  previous_orders.first.shipping_price} por el pedido #{previous_orders.first.order_number}."}
         else
           #delta because one has already been paid
           shipping_price += (Config.shipping_price_per_2_orders - Config.shipping_price_per_order)
-          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "El precio de envío de $#{printf("%.2f", shipping_price)} considera que hoy ya se pagó a esta misma dirección la cantidad de $#{printf("%.2f", previous_orders.first.shipping_price)} por el pedido #{previous_orders.first.order_number}."}
+          return {shipping_price: shipping_price, paired_order: previous_orders.first.id, message: "El precio de envío de $#{'%.2f' % shipping_price} considera que hoy ya se pagó a esta misma dirección la cantidad de $#{'%.2f' %  previous_orders.first.shipping_price} por el pedido #{previous_orders.first.order_number}."}
         end
 
       # no other orders to pair with
       else
-        return {shipping_price: shipping_price, paired_order: "none", message: "El precio de envío a esta dirección es de $#{printf("%.2f", Config.shipping_price_per_order)} hasta #{Config.max_volume_per_order} puntos." }
+        return {shipping_price: shipping_price, paired_order: "none", message: "El precio de envío a esta dirección es de $#{'%.2f' % Config.shipping_price_per_order} hasta #{Config.max_volume_per_order} puntos." }
       end
 
     end
