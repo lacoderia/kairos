@@ -18,11 +18,11 @@ class Order < ApplicationRecord
   scope :processed, -> {where(order_status: 'PROCESSED')}   
   scope :validating, -> {where(order_status: 'VALIDATING')}
 
-  before_validation(on: :create) do
-    if self.order_status.nil?
-      self.update_attribute('order_status', 'PROCESSED')
-    end
-  end
+#  before_validation(on: :create) do
+#    if self.order_status.nil?
+#      self.update_attribute('order_status', 'PROCESSED')
+#    end
+#  end
 
   STATUSES = [
     'VALIDATING',
@@ -128,7 +128,7 @@ class Order < ApplicationRecord
         order.process 
         #background jobs
         SendEmailJob.perform_later("order", order.users.first, order) 
-        SendEmailJob.perform_later("process_order", order.users.first, order) 
+        SendEmailJob.perform_later("process_order", order.users.first, order_hash)
         order.update_volume_for_users
         ChargeFeeJob.perform_later(user, company, order)
       
