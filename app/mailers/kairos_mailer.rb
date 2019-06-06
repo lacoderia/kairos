@@ -22,9 +22,12 @@ class KairosMailer < ActionMailer::Base
     mail(to: @user.email, subject: "Futura Network: confirmación de orden #{@order.order_number}")
   end
 
-  def process_order user, order
+  def process_order user, order_hash
     @user = user
-    @order = order
+    @order = Order.find_by_openpay_id(order_hash["id"])
+    @card_type = order_hash["card"]["type"]
+    @card_number = order_hash["card"]["card_number"]
+    @bank_name = order_hash["card"]["bank_name"]
     mail(to: Config.order_notification_email, subject: "Nuevo pedido en línea #{@order.company} - #{@order.order_number}")
   end
 

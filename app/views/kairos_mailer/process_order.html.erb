@@ -2,6 +2,8 @@
 
 <p>El detalle de la orden es el siguiente:</p>
 
+<p>Tarjeta usada: <%= @card_number %> de banco <%= @bank_name %> y de tipo <%= @card_type %>o. </p>
+
 <ul>
   <% @order.items.each do |item| %> 
     <li><%= item.name %> - $ <%= item.price %> - <%= item.volume %> VP </li>
@@ -18,3 +20,4 @@
 <% end %>
 
 <p><b> Total: $ <%= @order.total_price %> </b></p>
+
