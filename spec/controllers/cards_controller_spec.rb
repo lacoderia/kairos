@@ -32,7 +32,7 @@ feature 'CardsController' do
         page.driver.post cards_path, create_card_request 
       end
       response = JSON.parse(page.body)
-      expect(response["errors"][0]["title"]).to eq "Error creando tarjeta. Por favor verifica que los datos son correctos."
+      expect(response["errors"][0]["title"]).to eq "Error dando de alta tarjeta. Por favor verifica que los datos son correctos o intenta con alguna otra."
 
     end
 

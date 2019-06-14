@@ -230,7 +230,7 @@ class OpenpayHelper
         return result_hash
       end
     rescue Exception => e
-      raise "Error realizando un cargo en Openpay - #{e.message}"
+      raise "No pudo realizarse el cargo a trarjeta via Openpay - #{e.message}"
     end
   end
 
@@ -257,7 +257,7 @@ class OpenpayHelper
         return result_hash
       end
     rescue Exception => e
-      raise "Error realizando un cargo de comisión en Openpay - #{e.message}"
+      raise "No pudo realizarse el cargo de comisión via Openpay - #{e.message}"
     end
   end
   

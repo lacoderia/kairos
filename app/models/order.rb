@@ -135,7 +135,7 @@ class Order < ApplicationRecord
         return order
 
       else
-        raise "La orden no fue completada con éxito - #{order_hash["status"]}"
+        raise "No pudo realizarse el cargo a tarjeta con éxito - #{order_hash["status"]}"
       end
 
     else 
