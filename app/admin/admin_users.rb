@@ -2,7 +2,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
 
   actions :all, :except => [:show, :destroy]
 
-  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, :beneficiary_name, :beneficiary_dob, :beneficiary_relationship, :beneficiary_phone_number, shipping_addresses_attributes: [:address, :city, :state, :country, :zip, :reference, :between_streets, :phone, :name] 
+  permit_params :first_name, :last_name, :external_id, :sponsor_external_id, :placement_external_id, :phone, :active, :email, :iuvare_id, :phone_alt, :phone, :created_at, :password, :beneficiary_name, :beneficiary_dob, :beneficiary_relationship, :beneficiary_phone_number, shipping_addresses_attributes: [:address, :city, :state, :country, :zip, :reference, :between_streets, :phone, :name, :_destroy, :id] 
   
   filter :first_name, as: :string, label: "Nombre"
   filter :last_name, as: :string, label: "Apellido"
