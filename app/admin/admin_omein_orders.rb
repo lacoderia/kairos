@@ -32,36 +32,34 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
     end
 
     def update
-      if params[:order][:items_attributes] 
-        params[:order][:item_ids] = []
-        items = params[:order][:items_attributes]
-        destroy_count = item_count = 0
-        items.each do |ix, item|
-          item_count += 1
-          if item[:_destroy] == "1"
-            destroy_count += 1
-            next
-          end
-          params[:order][:item_ids] << item[:id]
+      params[:order][:item_ids] = []
+      items = params[:order][:items_attributes]
+      destroy_count = item_count = 0
+      items.each do |ix, item|
+        item_count += 1
+        if item[:_destroy] == "1"
+          destroy_count += 1
+          next
         end
-        if destroy_count == item_count
-          raise 'No pueden haber ordenes sin items'
-        end
-        params[:order].delete("items_attributes")
+        params[:order][:item_ids] << item[:id]
+      end
+      if destroy_count == item_count
+        raise 'No pueden haber ordenes sin items'
+      end
+      params[:order].delete("items_attributes")
 
-        order = Order.find(params[:id])
-        original_item_ids = [] 
-        order.items.each do |item| 
-          original_item_ids << item.id.to_s
-        end
-
-        order.items.destroy_all
-        params[:order][:item_ids].each do |item_id|
-          order.items << Item.find(item_id)    
-        end
+      order = Order.find(params[:id])
+      original_item_ids = [] 
+      order.items.each do |item| 
+        original_item_ids << item.id.to_s
       end
 
-      email_update, update_volume = false
+      order.items.destroy_all
+      params[:order][:item_ids].each do |item_id|
+        order.items << Item.find(item_id)    
+      end
+
+      total_price_update, email_update, update_volume = false
       if order.created_at.to_s != params[:order][:created_at] 
         if params[:order][:created_at].to_datetime.offset == 0
           params[:order][:created_at] = params[:order][:created_at].in_time_zone.to_s 
@@ -69,11 +67,11 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
 
         email_update = true
         update_volume = true
-        order.update_column(:created_at, params[:order][:created_at]) 
       end
       if params[:order][:item_ids].sort != original_item_ids.sort
         email_update = true
         update_volume = true
+        total_price_update = true
       end
       if params[:order][:shipping_address_id] != order.shipping_address_id.to_s
         email_update = true
@@ -81,7 +79,10 @@ ActiveAdmin.register Order, as: "Omein Ordenes" do
       end
       if params[:order][:shipping_price].to_f != order.shipping_price
         email_update = true
+        total_price_update = true
         order.update_column(:shipping_price, params[:order][:shipping_price])
+      end
+      if total_price_update
         order.update_column(:total_price,  order.calculate_total_price)
       end
       if email_update
