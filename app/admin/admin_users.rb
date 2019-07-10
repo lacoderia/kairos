@@ -11,6 +11,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
   filter :created_at, label: "Creación"
   filter :sponsor_external_id, label: "ID Patrocinio"  
   filter :placement_external_id, label: "ID Colocación"  
+  filter :active, label: "Activo?"
 
   controller do
 
@@ -60,6 +61,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
     column "ID Patrocinio", :sponsor_external_id
     column "ID Colocacion", :placement_external_id
     column "ID IUVARE", :iuvare_id
+    column "Activo?", :active
     column "" do |user|
       links = "#{link_to "Omein Order", "#{new_admin_omein_ordene_path}?user_id=#{user.id}"} "
       links += "#{link_to "Prana Order", "#{new_admin_prana_ordene_path}?user_id=#{user.id}"}"
@@ -92,6 +94,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
       f.input :beneficiary_dob, label: "Beneficiario - nacimiento", start_year: 1930, end_year: Time.now.year
       f.input :beneficiary_relationship, label: "Beneficiario - parentesco"
       f.input :beneficiary_phone_number, label: "Beneficiario - teléfono"
+      f.input :active, label: "Activo?"
       f.inputs "Direcciones" do
           f.has_many :shipping_addresses, allow_destroy: true, new_record: true do |a|
             a.input :address, label: "Dirección"

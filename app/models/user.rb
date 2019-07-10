@@ -24,6 +24,7 @@ class User < ApplicationRecord
   
   scope :by_external_id, -> (external_id){where(external_id: external_id)}  
   scope :with_max_id, -> {order(external_id: :desc).limit(1).first}
+  scope :is_active, ->{where(active: true)}
   
   def role?(role)
     return !!self.roles.find_by_name(role)

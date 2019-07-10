@@ -20,6 +20,8 @@ then
 	eval $weekly_command
 	weekly_reports="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/weekly_payment_for_users.rb '$PERIOD_START' '$PERIOD_END'"
 	eval $weekly_reports
+	weekly_inactives="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/weekly_inactive_users.rb"
+	eval $weekly_inactives
 fi
 
 if [ $DOM -eq 10 ]
