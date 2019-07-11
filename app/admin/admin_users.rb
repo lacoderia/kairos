@@ -97,7 +97,7 @@ ActiveAdmin.register User, as: "Distribuidores" do
       f.input :active, label: "Activo?"
       f.inputs "Direcciones" do
           f.has_many :shipping_addresses, allow_destroy: true, new_record: true do |a|
-            a.input :address, label: "Dirección"
+            a.input :address, label: "Calle, número y colonia"
             a.input :city, label: "Ciudad"
             a.input :state, label: "Estado"
             a.input :country, label: "País", collection: ["México"], 
