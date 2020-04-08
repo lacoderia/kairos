@@ -12,10 +12,14 @@ then
         then
           DOMPM=$(cal $(date +"%m %Y" --date "last month") | awk 'NF {DAYS = $NF}; END {print DAYS}')
           PERIOD_START=$YEAR-$(expr $MONTH - 1)-$(expr $DOMPM + $DOM - 9)
-	  PERIOD_END=$YEAR-$MONTH-$(expr $DOMPM + $DOM - 2)
+          if [ $(expr $DOMPM + $DOM - 2) -le $DOMPM ]
+            PERIOD_END=$YEAR-$MONTH-$(expr $DOMPM + $DOM - 2)
+          else
+            PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)            
+          fi
         else
           PERIOD_START=$YEAR-$MONTH-$(expr $DOM - 9)
-	  PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
+          PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
         fi
 	weekly_command="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/calculate_comissions.rb '$PERIOD_START' '$PERIOD_END'"
 	eval $weekly_command
