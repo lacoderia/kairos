@@ -6,16 +6,16 @@ YEAR=$(date +%Y)
 MONTH=$(date +%m)
 
 if [ $DOW -eq 3 ]
-then 
+then
 #calculate weekly commissions
         if [ $(expr $DOM - 9) -le 0 ]
         then
           DOMPM=$(cal $(date +"%m %Y" --date "last month") | awk 'NF {DAYS = $NF}; END {print DAYS}')
           PERIOD_START=$YEAR-$(expr $MONTH - 1)-$(expr $DOMPM + $DOM - 9)
-          if [ $(expr $DOMPM + $DOM - 2) -le $DOMPM ]
+          if [ $(expr $DOMPM + $DOM - 2) -le $(expr $DOMPM) ]
             PERIOD_END=$YEAR-$MONTH-$(expr $DOMPM + $DOM - 2)
           else
-            PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)            
+            PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
           fi
         else
           PERIOD_START=$YEAR-$MONTH-$(expr $DOM - 9)
