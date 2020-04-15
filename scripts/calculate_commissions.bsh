@@ -14,7 +14,7 @@ then
           PERIOD_START=$YEAR-$(expr $MONTH - 1)-$(expr $DOMPM + $DOM - 9)
           if [ $(expr $DOMPM + $DOM - 2) -le $(expr $DOMPM) ]
             PERIOD_END=$YEAR-$MONTH-$(expr $DOMPM + $DOM - 2)
-          else
+          then 
             PERIOD_END=$YEAR-$MONTH-$(expr $DOM - 2)
           fi
         else
