@@ -2,7 +2,7 @@ feature 'SummaryController' do
 
   period_start = Time.zone.now.beginning_of_month + 1.month
   period_end = period_start + 1.month
-  
+
   let!(:user_01){ create(:user, :confirmed) }
   let!(:summary_01){ create(:summary, user: user_01, period_start: period_start, period_end: period_end) }
   let!(:user_02){ create(:user, :confirmed, sponsor_external_id: user_01.external_id, placement_external_id: user_01.external_id) }
@@ -26,13 +26,13 @@ feature 'SummaryController' do
       expect(response.length).to eql 3
 
       logout
-      
+
       expect {visit for_user_summaries_path}.to raise_error.with_message('You are not authorized to access this page.')
 
     end
 
   end
-  
+
   context 'get summary by period with downlines' do
 
     it 'should get summary by period for downlines' do
@@ -50,9 +50,9 @@ feature 'SummaryController' do
       expect(response["downlines"][0]["downlines"][0]["user"]["id"]).to eql user_03.id
 
       logout
-      
+
       expect {visit by_period_with_downlines_summaries_path}.to raise_error.with_message('You are not authorized to access this page.')
-      
+
     end
 
   end
@@ -67,7 +67,6 @@ feature 'SummaryController' do
 
       visit ("#{by_period_and_user_with_downlines_1_level_summaries_path}?user_id=#{user_01.id}&period_start=#{period_start}&period_end=#{period_end}")
       response = JSON.parse(page.body)
-
       expect(response["user"]["id"]).to eql user_01.id
       expect(response["summary"]["omein_vg"]).to eql summary_01.omein_vg
       expect(response["downlines"][0]["user"]["id"]).to eql user_02.id
@@ -82,9 +81,9 @@ feature 'SummaryController' do
       expect(response["downlines"][0]["downlines"].length).to eql 0
 
       logout
-      
+
       expect {visit by_period_and_user_with_downlines_1_level_summaries_path}.to raise_error.with_message('You are not authorized to access this page.')
-      
+
     end
 
   end

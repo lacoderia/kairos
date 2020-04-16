@@ -64,7 +64,7 @@ class Summary < ApplicationRecord
     downlines = user.placement_downlines
     summary_for_period = Summary.find_or_create_by(user: user, period_start: period_start.to_datetime, period_end: period_end.to_datetime)
     return_data = {user:
-                    {id: user.id, downline_count: downlines.count, external_id: user.external_id, first_name: user.first_name, last_name: user.last_name},
+                    {id: user.id, downline_count: downline.count, external_id: user.external_id, first_name: user.first_name, last_name: user.last_name},
                   summary:
                     {omein_vp: summary_for_period.omein_vp, omein_vg: summary_for_period.omein_vg,
                       prana_vp: summary_for_period.prana_vp, prana_vg: summary_for_period.prana_vg,
