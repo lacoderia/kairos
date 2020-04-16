@@ -6,7 +6,7 @@ class User < ApplicationRecord
 
   include DeviseTokenAuth::Concerns::User
 
-  has_and_belongs_to_many :roles  
+  has_and_belongs_to_many :roles
   has_and_belongs_to_many :shipping_addresses
   has_and_belongs_to_many :orders
   has_and_belongs_to_many :payments
@@ -18,20 +18,20 @@ class User < ApplicationRecord
 
   after_create :send_confirmation_email
 
-  validates :max_rank, inclusion: {in: OmeinCompPlan::RANKS }  
+  validates :max_rank, inclusion: {in: OmeinCompPlan::RANKS }
 
-  accepts_nested_attributes_for :shipping_addresses, allow_destroy: true  
-  
-  scope :by_external_id, -> (external_id){where(external_id: external_id)}  
+  accepts_nested_attributes_for :shipping_addresses, allow_destroy: true
+
+  scope :by_external_id, -> (external_id){where(external_id: external_id)}
   scope :with_max_id, -> {order(external_id: :desc).limit(1).first}
   scope :is_active, ->{where(active: true)}
-  
+
   def role?(role)
     return !!self.roles.find_by_name(role)
   end
 
-  def get_openpay_id(company) 
-    
+  def get_openpay_id(company)
+
     if not self.send("#{company.downcase}_openpay_id")
       payment_api = OpenpayHelper.new(company)
       result = payment_api.create_user self
@@ -86,7 +86,7 @@ class User < ApplicationRecord
       false
     end
   end
-  
+
   def placement_downlines
     User.where(placement_external_id: self.external_id)
   end
@@ -105,18 +105,18 @@ class User < ApplicationRecord
 
   def omein_active_for_period period_start, period_end, min_volume = OmeinCompPlan::MIN_VOLUME
 
-    omein_volume = self.omein_get_personal_volume period_start, period_end 
+    omein_volume = self.omein_get_personal_volume period_start, period_end
 
     if omein_volume < min_volume
       return false
     else
       return true
     end
-    
+
   end
 
   #TODO: verify registration_paid in PRANA by checking ODERS with item 'INSCRIPCION' and adding a field in users named registration_paid
-  def prana_active_for_period period_start, period_end, verify_min_volume_in_omein = false 
+  def prana_active_for_period period_start, period_end, verify_min_volume_in_omein = false
 
     prana_volume = self.prana_get_personal_volume period_start, period_end
 
@@ -126,7 +126,7 @@ class User < ApplicationRecord
 
     if verify_min_volume_in_omein
       return self.omein_active_for_period period_start, period_end, OmeinCompPlan::MAX_VOLUME
-    else 
+    else
       return true
     end
 
@@ -146,29 +146,29 @@ class User < ApplicationRecord
 
   def get_personal_volume_detail period_start, period_end, company
     user_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
-                                                  AND orders.order_status != ?", company, period_start, period_end, 
+                                                  AND orders.order_status != ?", company, period_start, period_end,
                                                   "VALIDATING").order(created_at: :asc).uniq
 
     return Order.get_volume_detail user_orders
   end
 
   def get_personal_volume period_start, period_end, company
-    get_personal_volume_detail(period_start, period_end, company)[:total_volume]    
+    get_personal_volume_detail(period_start, period_end, company)[:total_volume]
   end
 
   def omein_get_personal_volume period_start, period_end
 
     get_personal_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN
-    
+
   end
 
   def prana_get_personal_volume period_start, period_end
-    
-    get_personal_volume period_start, period_end, PranaCompPlan::COMPANY_PRANA 
-    
+
+    get_personal_volume period_start, period_end, PranaCompPlan::COMPANY_PRANA
+
   end
 
-  def omein_get_power_start_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN 
+  def omein_get_power_start_volume period_start, period_end, company = OmeinCompPlan::COMPANY_OMEIN
 
     previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?
                                                             AND orders.order_status != ?", company, period_start, "VALIDATING").uniq
@@ -178,8 +178,12 @@ class User < ApplicationRecord
     else
       current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
                         AND orders.order_status != ?", company, period_start, period_end, "VALIDATING").order(created_at: :asc).uniq
-      
-      return Order.get_volume_detail [current_omein_orders.first]
+
+      if current_omein_orders.count > 0
+        return Order.get_volume_detail [current_omein_orders.first]
+      else
+        return {items: [], total_volume: 0}
+      end
     end
 
   end
@@ -190,7 +194,7 @@ class User < ApplicationRecord
 
     #check if it is the first order from the user
     if self.created_at < period_start
-      
+
       #previous_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at < ?", company, period_start)
 
       #has previous orders registered
@@ -200,16 +204,16 @@ class User < ApplicationRecord
       #else
       #  return self.omein_get_personal_volume period_start, period_end
       #end
-      
+
       return self.get_personal_volume_detail period_start, period_end, company
-      
+
     else
 
       current_omein_orders = self.orders.joins(:items).where("items.company = ? AND orders.created_at >= ? AND orders.created_at < ?
                                                 AND orders.order_status != ?", company, period_start, period_end, "VALIDATING").uniq
 
       return Order.get_volume_detail_avoid_first_order current_omein_orders
-       
+
     end
 
   end
@@ -219,8 +223,8 @@ class User < ApplicationRecord
     downlines = self.placement_downlines
 
     if downlines.count == 0
-      
-      volume = self.get_personal_volume period_start, period_end, company 
+
+      volume = self.get_personal_volume period_start, period_end, company
       puts "Usuario #{self.external_id} con #{volume} VP" if volume > 0
       return volume
 
@@ -232,10 +236,10 @@ class User < ApplicationRecord
         volume += downline.get_group_volume period_start, period_end, company
       end
 
-      personal_volume = get_personal_volume period_start, period_end, company 
+      personal_volume = get_personal_volume period_start, period_end, company
       volume += personal_volume
-      
-      puts "Usuario #{self.external_id} con #{personal_volume} VP" if personal_volume > 0 
+
+      puts "Usuario #{self.external_id} con #{personal_volume} VP" if personal_volume > 0
       return volume
 
     end
@@ -243,15 +247,15 @@ class User < ApplicationRecord
   end
 
   def omein_get_group_volume period_start, period_end
-    
+
     get_group_volume period_start, period_end, OmeinCompPlan::COMPANY_OMEIN
-    
+
   end
 
   def prana_get_group_volume period_start, period_end
-    
+
     get_group_volume period_start, period_end, PranaCompPlan::COMPANY_PRANA
-    
+
   end
 
   def search_qualified_downlines qualified_users, root_tree, leg_position = nil
@@ -295,7 +299,7 @@ class User < ApplicationRecord
       downlines.each do |downline|
 
         if company == OmeinCompPlan::COMPANY_OMEIN
-          active_in_period = downline.omein_active_for_period period_start, period_end 
+          active_in_period = downline.omein_active_for_period period_start, period_end
         else
           active_in_period = downline.prana_active_for_period period_start, period_end, true
         end
@@ -308,7 +312,7 @@ class User < ApplicationRecord
       end
 
       inactive_downlines.each do |inactive_downline|
-        
+
         downline = User.check_activity_recursive_downline inactive_downline, period_start, period_end, company
 
         if downline
@@ -317,12 +321,12 @@ class User < ApplicationRecord
       end
 
       return nil
-      
+
     end
 
-  end 
+  end
 
-  def self.prana_check_activity_recursive_upline_3_levels_no_compression upline, uplines_with_eligibility, period_start, period_end 
+  def self.prana_check_activity_recursive_upline_3_levels_no_compression upline, uplines_with_eligibility, period_start, period_end
 
 
     if upline == nil or uplines_with_eligibility.count == 3
@@ -330,12 +334,12 @@ class User < ApplicationRecord
     else
 
       eligible_for_payment = upline.prana_active_for_period period_start, period_end, true
-      active_in_prana = upline.prana_active_for_period period_start, period_end, false 
+      active_in_prana = upline.prana_active_for_period period_start, period_end, false
 
       if active_in_prana
         uplines_with_eligibility << {upline: upline, eligible: eligible_for_payment}
       end
-        
+
       if upline.placement_upline
         return User.prana_check_activity_recursive_upline_3_levels_no_compression(upline.placement_upline, uplines_with_eligibility,
                                                                                   period_start, period_end)
@@ -356,7 +360,7 @@ class User < ApplicationRecord
         qualified_uplines << upline
       else
         if upline.sponsor_upline
-          return User.omein_check_activity_recursive_upline_4_levels_compression(upline.sponsor_upline, qualified_uplines, 
+          return User.omein_check_activity_recursive_upline_4_levels_compression(upline.sponsor_upline, qualified_uplines,
             period_start, period_end)
         else
           return qualified_uplines
@@ -378,7 +382,7 @@ class User < ApplicationRecord
       end
 
       if upline.sponsor_upline
-        return User.omein_check_activity_recursive_upline_2_levels_compression(upline.sponsor_upline, qualified_uplines, 
+        return User.omein_check_activity_recursive_upline_2_levels_compression(upline.sponsor_upline, qualified_uplines,
           period_start, period_end)
       else
         return qualified_uplines
@@ -395,21 +399,21 @@ class User < ApplicationRecord
       #search upline in eligible levels
       qualified_for_period = OmeinCompPlan.check_user_in_qualificated_ranks upline, qualified_ranks, qualified_uplines.count
 
-      if qualified_for_period 
+      if qualified_for_period
         qualified_uplines << upline
       end
-        
+
       if upline.placement_upline
-        return User.omein_check_activity_recursive_upline_9_levels_compression(upline.placement_upline, qualified_uplines, qualified_ranks, 
+        return User.omein_check_activity_recursive_upline_9_levels_compression(upline.placement_upline, qualified_uplines, qualified_ranks,
           period_start, period_end)
       else
         return qualified_uplines
       end
     end
 
-  end 
+  end
 
-  def self.check_tree_consistency_placement user 
+  def self.check_tree_consistency_placement user
 
     if user.external_id == 11
       #Se ha llegado al final del árbol
@@ -426,7 +430,7 @@ class User < ApplicationRecord
 
   end
 
-  def self.check_tree_consistency_sponsor user 
+  def self.check_tree_consistency_sponsor user
 
     if user.external_id == 11
       #Se ha llegado al final del árbol
@@ -444,39 +448,39 @@ class User < ApplicationRecord
   end
 
   def self.update_summaries period_start, period_end
-    
+
     #users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ?", period_start,
     #                                            period_end,).order("external_id desc").uniq
 
     User.all.each do |user|
 
-      omein_vp = user.omein_get_personal_volume(period_start, period_end) 
+      omein_vp = user.omein_get_personal_volume(period_start, period_end)
       omein_vg = user.omein_get_group_volume(period_start, period_end)
       prana_vp = user.prana_get_personal_volume(period_start, period_end)
       prana_vg = user.prana_get_group_volume(period_start, period_end)
 
       Summary.omein_populate user, period_start.beginning_of_month,  (period_start + 1.month), omein_vp, omein_vg, nil
       Summary.prana_populate user, period_start.beginning_of_month,  (period_start + 1.month), prana_vp, prana_vg
-      
+
     end
 
   end
 
   def recursive_update_volume_with_uplines(period_start, period_end, company)
-    
-    if company == OmeinCompPlan::COMPANY_OMEIN 
-      omein_vp = self.omein_get_personal_volume(period_start, period_end) 
+
+    if company == OmeinCompPlan::COMPANY_OMEIN
+      omein_vp = self.omein_get_personal_volume(period_start, period_end)
       omein_vg = self.omein_get_group_volume(period_start, period_end)
       Summary.omein_populate(self, period_start, period_end, omein_vp, omein_vg, nil)
     elsif company == PranaCompPlan::COMPANY_PRANA
-      prana_vp = self.prana_get_personal_volume(period_start, period_end) 
+      prana_vp = self.prana_get_personal_volume(period_start, period_end)
       prana_vg = self.prana_get_group_volume(period_start, period_end)
       Summary.prana_populate(self, period_start, period_end, prana_vp, prana_vg)
     end
 
-    if self.placement_upline 
+    if self.placement_upline
       UpdateVolumeJob.perform_later(self.placement_upline, {period_start: period_start.strftime("%Y-%m-%d"),
-                                           period_end: period_end.strftime("%Y-%m-%d"), company: company}) 
+                                           period_end: period_end.strftime("%Y-%m-%d"), company: company})
     end
 
   end
@@ -486,5 +490,5 @@ class User < ApplicationRecord
   def send_confirmation_email
     self.send_confirmation_instructions
   end
-  
+
 end
