@@ -31,8 +31,14 @@ class SessionsController < Devise::SessionsController
 
   def get
     if current_user
-      @user = current_user
-      render json: @user
+      if not current_user.active
+        @user = User.new
+        @user.errors.add(:inactive_user, "No puedes iniciar sesión, tu usuario está inactivo.")
+        render json: ErrorSerializer.serialize(@user.errors), status: 500            
+      else
+        @user = current_user
+        render json: @user
+      end
     else
       @user = User.new
       @user.errors.add(:no_session, "No se ha iniciado sesión.")
