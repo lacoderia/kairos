@@ -10,10 +10,17 @@ class SessionsController < Devise::SessionsController
       if @user.valid_password?(params[:user][:password])
 
         if @user.confirmed?
-          new_auth_header = @user.create_new_auth_token
-          response.headers.merge!(new_auth_header)
-          sign_in @user
-          render json: @user
+          if not @user.active
+            @user = User.new
+            @user.errors.add(:inactive_user, "No puedes iniciar sesión, tu usuario está inactivo.")
+            render json: ErrorSerializer.serialize(@user.errors), status: 500            
+          else
+            new_auth_header = @user.create_new_auth_token
+            response.headers.merge!(new_auth_header)
+            sign_in @user
+            render json: @user
+          end
+
         else
           @user.errors.add(:unconfirmed_email, "El correo electrónico no ha sido confirmado.")
           render json: ErrorSerializer.serialize(@user.errors), status: 500
