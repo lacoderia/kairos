@@ -218,6 +218,7 @@ class Order < ApplicationRecord
       end
     end
 
+    result[:items].sort_by!{|item| -item[:volume]}
     result[:total_volume] = total_volume
     return result
 

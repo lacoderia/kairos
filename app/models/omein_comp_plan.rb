@@ -446,70 +446,64 @@ class OmeinCompPlan
 
       if period_start.month != period_end.month
         total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_start.end_of_month, COMPANY_OMEIN
-        total_pv = total_pv_details[:total_volume]
       else
         total_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_end, COMPANY_OMEIN
-        total_pv = total_pv_details[:total_volume]
       end
+      total_pv = total_pv_details[:total_volume]
       
       if total_pv > MAX_VOLUME
       
         if period_start.month != period_end.month
           weekly_pv_details = user.get_personal_volume_detail period_start, period_start.end_of_month, COMPANY_OMEIN 
-          weekly_pv = weekly_pv_details[:total_volume] 
+          delta_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_start, COMPANY_OMEIN
         else
           if (period_start - 1.week).month != (period_end - 1.week).month
             weekly_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_end, COMPANY_OMEIN 
-            weekly_pv = weekly_pv_details[:total_volume]
+            delta_pv_details = {total_volume: 0, items: []}
           else
             weekly_pv_details = user.get_personal_volume_detail period_start, period_end, COMPANY_OMEIN 
-            weekly_pv = weekly_pv_details[:total_volume]
+            delta_pv_details = user.get_personal_volume_detail period_start.beginning_of_month, period_start, COMPANY_OMEIN
           end
         end
+        weekly_pv = weekly_pv_details[:total_volume] 
+        delta_pv_total = delta_pv_details[:total_volume]
+        
+        #we pay all of the week
+        if delta_pv_total >= MAX_VOLUME 
+          selling_bonus_detail = weekly_pv_details
+        #we pay the new week exceeding only the MAX VOLUME considering the previous orders
+        else 
 
-        excedent_pv = total_pv - MAX_VOLUME
-
-        if excedent_pv < weekly_pv
-          
+          remaining_points = MAX_VOLUME - delta_pv_total
           selling_bonus_detail = {items: [], total_volume: 0}
-          acc_volume = 0
-          total_pv_details[:items].each do |item|
-            
-            if acc_volume >= MAX_VOLUME
-              selling_bonus_detail[:items] << item
-              selling_bonus_detail[:total_volume] += item[:volume] 
-            else
-              if acc_volume == 0
-                if item[:volume] <= MAX_VOLUME
-                  acc_volume += item[:volume]
-                else
-                  #break +200 volume items into small 100 volume items
-                  base_100_item = Item.find_by_volume(100)
-                  excedent_volume = item[:volume] - MAX_VOLUME
-                  acc_volume += MAX_VOLUME
 
-                  (excedent_volume/100).times.each do |x|
-                    selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
-                    selling_bonus_detail[:total_volume] += base_100_item.volume 
+          if remaining_points < weekly_pv
+            
+            excedent_pv = weekly_pv - remaining_points
+
+            if excedent_pv >= 100
+              acc_volume = 0
+              weekly_pv_details[:items].each do |item|
+                acc_volume += item[:volume]
+                if acc_volume >= remaining_points
+                  partial_points = item[:volume] - remaining_points
+                  #break items into smaller volume items
+                  if partial_points >= 0
+                    (partial_points/100).times.each do |x|
+                      base_100_item = Item.find_by_volume(100)                  
+                      selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
+                      selling_bonus_detail[:total_volume] += base_100_item.volume
+                    end
+                  else
+                    selling_bonus_detail[:items] << item
+                    selling_bonus_detail[:total_volume] += item[:volume]
                   end
-                end
-              else
-                #break +200 volume items into small 100 volume items
-                base_100_item = Item.find_by_volume(100)
-                remainder_item_volume = item[:volume] - acc_volume
-                acc_volume += acc_volume
-                (remainder_item_volume/100).times.each do |x|
-                  selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
-                  selling_bonus_detail[:total_volume] += base_100_item.volume 
                 end
               end
             end
           end
-
-        else
-          selling_bonus_detail = weekly_pv_details
         end
-        
+                
         Payment.omein_add_selling_bonus_20 user, period_start, period_end, [user], selling_bonus_detail 
         base_payments += 1
         puts "pago de 20% al usuario #{user.email} en el periodo #{period_start} - #{period_end}"
