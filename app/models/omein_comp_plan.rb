@@ -433,7 +433,7 @@ class OmeinCompPlan
   def self.calculate_selling_bonus period_start, period_end
 
     users = User.joins(:orders => :items).where("orders.created_at >= ? AND orders.created_at < ? AND items.company = ?
-                                                AND orders.order_status != ?", period_start, period_end, COMPANY_OMEIN, 
+                                                AND orders.order_status != ?", (period_start - 1.week), period_end, COMPANY_OMEIN, 
                                                 "VALIDATING").order("external_id desc").uniq
 
     base_payments = 0
