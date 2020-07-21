@@ -218,6 +218,7 @@ class Order < ApplicationRecord
       end
     end
 
+    #TODO: check if the algortithm in OmeinCompPlan can work without this line, in the FIFO order
     result[:items].sort_by!{|item| -item[:volume]}
     result[:total_volume] = total_volume
     return result
