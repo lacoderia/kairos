@@ -486,14 +486,19 @@ class OmeinCompPlan
               weekly_pv_details[:items].each do |item|
                 acc_volume += item[:volume]
                 if acc_volume >= remaining_points
+
                   partial_points = item[:volume] - remaining_points
+
                   #break items into smaller volume items
-                  if partial_points >= 0
+                  if partial_points >= 0 and remaining_points != 0
                     (partial_points/100).times.each do |x|
                       base_100_item = Item.find_by_volume(100)                  
                       selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
                       selling_bonus_detail[:total_volume] += base_100_item.volume
                     end
+                    remaining_points = 0
+                  elsif partial_points < 0 and remaining_points != 0
+                    remaining_points -= item[:volume]
                   else
                     selling_bonus_detail[:items] << item
                     selling_bonus_detail[:total_volume] += item[:volume]
