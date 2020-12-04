@@ -27,7 +27,7 @@ class PranaCompPlan
       user_deadline = user_sign_up_in_prana.end_of_day + 1.month 
 
       #deferred user
-      if period_end.beginning_of_day > user_deadline
+      if period_end.beginning_of_day > user_deadline and period_start.beginning_of_day > user_deadline
 
         if (not user.prana_active_for_period period_start.beginning_of_month,  period_start.beginning_of_month + 1.month, true) 
           next
