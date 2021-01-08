@@ -11,7 +11,15 @@ then
         if [ $(expr $DOM - 9) -le 0 ]
         then
           DOMPM=$(cal $(date +"%m %Y" --date "last month") | awk 'NF {DAYS = $NF}; END {print DAYS}')
-          PERIOD_START=$YEAR-$(expr $MONTH - 1)-$(expr $DOMPM + $DOM - 9)
+          if [ $MONTH -eq 01]
+          then
+            PREV_MONTH=12
+            PREV_YEAR=$(expr $YEAR - 1)
+          else
+            PREV_MONTH=$(expr $MONTH - 1)
+            PREV_YEAR=$YEAR
+          fi
+          PERIOD_START=$PREV_YEAR-$PREV_MONTH-$(expr $DOMPM + $DOM - 9)
           if [ $(expr $DOMPM + $DOM - 2) -le $DOMPM ]
             PERIOD_END=$YEAR-$MONTH-$(expr $DOMPM + $DOM - 2)
           then
