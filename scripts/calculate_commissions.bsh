@@ -39,7 +39,15 @@ fi
 
 if [ $DOM -eq 10 ]
 then
-	PERIOD_START=$YEAR-$(expr $MONTH - 1)-01
+  if [ $MONTH -eq 01]
+  then
+    PREV_MONTH=12
+    PREV_YEAR=$(expr $YEAR - 1)
+  else
+    PREV_MONTH=$(expr $MONTH - 1)
+    PREV_YEAR=$YEAR
+  fi
+	PERIOD_START=$PREV_YEAR-$PREV_MONTH-01
 	PERIOD_END=$YEAR-$MONTH-01
 	monthly_command="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/calculate_comissions.rb '$PERIOD_START' '$PERIOD_END'"
 	eval $monthly_command
@@ -47,5 +55,4 @@ then
 	eval $omein_reports
 	prana_reports="cd /home/deploy/kairos; RAILS_ENV=production /home/deploy/.rvm/rubies/ruby-2.3.0/bin/ruby scripts/prana_payment_for_users.rb '$PERIOD_START' '$PERIOD_END'"
 	eval $prana_reports
-
 fi
