@@ -25,7 +25,7 @@ gem 'draper',              '> 3.x'
 gem 'rest-client', '~> 1.6.9'
 
 gem 'loofah', '~> 2.2.1'
-gem 'carrierwave', '~> 1.0'
+gem 'carrierwave', '~> 1.3'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.5'
