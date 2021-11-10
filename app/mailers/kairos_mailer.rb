@@ -33,17 +33,17 @@ class KairosMailer < ActionMailer::Base
 
   def send_weekly_commissions filepath, period
     attachments[filepath] = File.read(filepath)
-    mail(to: "benjamin@coderia.mx, ricardo@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork semanales de #{period}")
+    mail(to: "benjamin@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork semanales de #{period}")
   end
 
   def send_unilevel_commissions_prana filepath, period 
     attachments[filepath] = File.read(filepath)
-    mail(to: "benjamin@coderia.mx, ricardo@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork unilevel de PRANA #{period}")
+    mail(to: "benjamin@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork unilevel de PRANA #{period}")
   end
 
   def send_unilevel_commissions_omein filepath, period
     attachments[filepath] = File.read(filepath)
-    mail(to: "benjamin@coderia.mx, ricardo@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork unilevel de OMEIN #{period}")
+    mail(to: "benjamin@coderia.mx, victor@omein.com", subject: "Comisiones de Futuranetwork unilevel de OMEIN #{period}")
   end
 
 end
