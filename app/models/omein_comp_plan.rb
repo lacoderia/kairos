@@ -490,7 +490,7 @@ class OmeinCompPlan
                   partial_points = item[:volume] - remaining_points
 
                   #break items into smaller volume items
-                  if partial_points >= 0 and remaining_points != 0
+                  if partial_points > 0 and remaining_points != 0
                     (partial_points/100).times.each do |x|
                       base_100_item = Item.find_by_volume(100)                  
                       selling_bonus_detail[:items] << {id: base_100_item.id, volume: base_100_item.volume}
